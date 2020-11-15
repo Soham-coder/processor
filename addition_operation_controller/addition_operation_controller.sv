@@ -1,5 +1,5 @@
 // Code your design here
-`include "reg_file.v"
+`include "../fpu_adder/fpu_add.sv"
 module add_controller //Does add_register or add_immediate operations
   (clk, rst, start, pc, next_pc, fetch_stage_enable , done, busy, operation_type, source_1_address, source_2_address, destination_address, source_immediate_value, rs1, rs2, rd, source_1_value, source_2_value, destination_value, write_enable);
 input clk;//clock
