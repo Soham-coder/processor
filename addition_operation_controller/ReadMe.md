@@ -2,8 +2,8 @@
 
 Block Diagram
 
-![Alt text](Block Diagram.jpg?raw=true "Block_Diagram")
+![Alt text](Block_Diagram.jpg?raw=true "Block_Diagram")
 
 Data Flow ASM
 
-![Alt text](Block Diagram.jpg?raw=true "Data_Flow_ASM")
+![Alt text](Data_Flow_ASM.jpg?raw=true "Data_Flow_ASM")
