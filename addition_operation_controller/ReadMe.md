@@ -2,12 +2,22 @@
 
 Block Diagram
 
-![Alt text](./Block_Diagram.jpg?raw=true "Block_Diagram")
+<p align="center">
+  <img src="./Block_Diagram.jpg?raw=true" alt="Block_Diagram"/>
+</p>
+
 
 Data Flow ASM
 
-![Alt text](./Data_Flow_ASM.jpg?raw=true "Data_Flow_ASM")
+<p align="center">
+  <img src="./Data_Flow_ASM.jpg?raw=true" alt="Data_Flow_ASM"/>
+</p>
+
+
 
 Data Flow FSM
 
-![Alt text](./Data_Flow_FSM.jpg?raw=true "Data_Flow_FSM")
+<p align="center">
+  <img src="./Data_Flow_FSM.jpg?raw=true" alt="Data_Flow_FSM"/>
+</p>
+
