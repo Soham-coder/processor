@@ -1,4 +1,4 @@
-# sync
+
 
 Final waveform (Details will be updated soon...)
 
