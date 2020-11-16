@@ -130,14 +130,14 @@ always @(posedge clk)begin//always
  source_1_temp <= source_1_value; // Latch value of source_1 operand as given by address rs1 by register file
  state <= start_adder;//Go to next state of starting the adder
  case(operation_type)// For selecting source_2 operand either take either register value as given by rs2 address by register file or 
- //take immediate value based on operation_type flag (I or J)
+ //take immediate value based on operation_type flag (R or I)
  R:
  begin
- source_2_temp <= source_2_value; //Register Operation? - Take value given by Register File
+ source_2_temp <= source_2_value; //Register Operation(R)? - Take value given by Register File
  end
  I:
  begin
- source_2_temp <= source_immediate_value; //Immediate Operation? - Take immediate value given by Instruction decode controller 
+ source_2_temp <= source_immediate_value; //Immediate Operation(I)? - Take immediate value given by Instruction decode controller 
  end
  endcase///
  end////

@@ -1,29 +1,29 @@
-# sync
 
 
-Simple Handshake Diagram
+
+__Simple Handshake Diagram__
 
 <p align="center">
   <img src="./Simple_handsake.PNG?raw=true" alt="Waveform"/>
 </p>
 
-======================================================
 
-Data Flow FSM
+
+__Data Flow FSM__
 
 <p align="center">
   <img src="./FSM.jpg?raw=true" alt="Data_Flow_FSM"/>
 </p>
 
-======================================================
 
-Waveform
+
+__Waveform__
 
 <p align="center">
   <img src="./wave.PNG?raw=true" alt="Waveform"/>
 </p>
 
-======================================================
+
 
 
 Waveform description:
