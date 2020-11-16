@@ -1,11 +1,65 @@
 # sync
 
+//________IEEE Floating Point Adder (Single Precision)________//
+
+
+/////////////////////////////________Block Diagram________////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+//                        +-------------------+
+//          input_a     =>|                   |=> output_sum
+//          input_b     =>|                   |
+//                        |      adder        |=> adder_output_STB
+//      adder_input_STB =>|                   |<= output_module_BUSY
+//           adder_BUSY <=|                   |
+//                        +--------^-|--------+
+//                clk______________| |
+//              rst__________________|
+
+
+
+/////////////////////////////________Specification________////////////////////////////////////////////////////////////////////////////////////////////
+
+//1. A transaction takes place any time the input STB line (adder_input_STB) is true and the output BUSY line (adder_BUSY) is false.
+//2. Adder needs to be careful not to ever lower the output BUSY line (adder_BUSY), unless it is ready to receive data.
+//3. The input STB (adder_input_STB) line should be raised any time input data is ready for sending. The data source must not wait for adder BUSY (adder_BUSY) to be false before raising the input STB line (adder_input_STB).
+//4. Busy should be IDLE or 0 (adder_BUSY) when full adder is not busy.
+//5. Once input STB (adder_input_STB) is raised, the data being transferred cannot be changed until the clock after the transaction takes place.
+//6. The Data lines (output_sum) hold the previous valid output any time output STB (adder_output_STB) is false.
+//7. At Reset output adder_BUSY=0, output adder_output_STB=0, and output data lines will be in don't care.
+
+
+/////////////////////////////________Port_____List________/////////////////////////////////////////////////////////////////////////////////////////////
+
+
+//      +_____________________________________________________________________________________________________________________________________________________+
+//      |#Port Name           | #Direction  | #Width   |  #Description                                                                                        |
+//      |_____________________|_____________|__________|______________________________________________________________________________________________________|
+//      |  input_a            |     input   |     32   |  Input operand a                                                                                     |
+//      |  input_b            |     input   |     32   |  Input operand b                                                                                     |
+//      |  adder_input_STB    |     input   |     1    |  Input valid signal, indicates input is valid                                                        |
+//      |  adder_BUSY         |     output  |     1    |  Output busy signal, indicates adder is busy and cannot process next input until current one is done |
+//      |  clk                |     input   |     1    |  Clock sample                                                                                        |
+//      |  rst                |     input   |     1    |  Active high reset                                                                                   |
+//      |  output_sum         |     output  |     32   |  Output summation result                                                                             |
+//      |  adder_output_STB   |     output  |     1    |  Output valid signal, indicates output is valid                                                      |
+//      |  output_module_BUSY |     input   |     1    |  Input busy signal, indicates output module is busy, cannot take next input                          |
+//      |_____________________|_____________|__________|______________________________________________________________________________________________________|
+
+
 Simple Handshake Diagram
-![Alt text](./Simple_handsake.PNG?raw=true "Waveform")
+
+<p align="center">
+  <img src="./Simple_handsake.PNG?raw=true" alt="Waveform"/>
+</p>
+
 ======================================================
+
 Data Flow FSM
 ![Alt text](./FSM.jpg?raw=true "Data Flow FSM")
 ======================================================
+
 Waveform
 ![Alt text](./wave.PNG?raw=true "Waveform")
 ======================================================
