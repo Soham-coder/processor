@@ -7,7 +7,16 @@ __Simple Handshake Diagram__
   <img src="./Simple_handsake.PNG?raw=true" alt="Waveform"/>
 </p>
 
+___Specification___
 
+1. A transaction takes place any time the input STB line (adder_input_STB) is true and the output BUSY line (adder_BUSY) is false.
+2. Adder needs to be careful not to ever lower the output BUSY line (adder_BUSY), unless it is ready to receive data.
+3. The input STB (adder_input_STB) line should be raised any time input data is ready for sending. The data source must not wait for adder BUSY (adder_BUSY)
+to be false before raising the input STB line (adder_input_STB).
+4. Busy should be IDLE or 0 (adder_BUSY) when full adder is not busy.
+5. Once input STB (adder_input_STB) is raised, the data being transferred cannot be changed until the clock after the transaction takes place.
+6. The Data lines (output_sum) hold the previous valid output any time output STB (adder_output_STB) is false.
+7. At Reset output adder_BUSY=0, output adder_output_STB=0, and output data lines will be in don't care.
 
 __Data Flow FSM__
 
