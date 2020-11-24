@@ -4,7 +4,7 @@
 
 
 module instruction_decode_controller
-  (clk, rst, start, instruction, busy, done, fetch_stage_enable);
+  (clk, rst, start, instruction, busy, done, fetch_stage_enable, next_pc_to_cpu);
   
   input clk;//Clock
   input rst;//Reset signal
@@ -16,6 +16,7 @@ module instruction_decode_controller
   output busy; //Output busy signal indicating that controller is busy doing current operation
   output done; //Output done signal indicating that controller has finished doing current operation
   output fetch_stage_enable; //Output signal to write to poll register which CPU polls to determine when to go for next instruction
+  output [4:0] next_pc_to_cpu; //Output next pc value to CPU
   
   //Intermediate registers/variables
   reg [4:0] rs1, rs2, rd;
@@ -41,7 +42,8 @@ module instruction_decode_controller
   assign busy = busy_temp;
   assign done = done_temp;
   assign fetch_stage_enable = fetch_stage_enable_temp;
-  
+  assign next_pc_to_cpu = next_pc;
+   
    //Register file instance 
    //Off-course only one will be there, since it is acting like a shared scratchpad memory
    RegisterFile reg_inst
