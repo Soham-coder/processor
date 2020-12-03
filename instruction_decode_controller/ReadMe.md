@@ -19,4 +19,10 @@ __Data Flow FSM__
   <img src="./Data_flow_FSM.jpg?raw=true" alt="Data_Flow_FSM"/>
 </p>
 
+__Note__
+
+<p align="center">
+  <img src="./Note.jpg?raw=true" alt="Note"/>
+</p>
+
 
