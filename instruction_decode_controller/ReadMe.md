@@ -5,6 +5,9 @@ __Instruction Format__
   <img src="./Instruction_format.jpg?raw=true" alt="Instruction Format"/>
 </p>
 
+<p align="center">
+  <img src="./Instruction_format2.jpg?raw=true" alt=""/>
+</p>
 
 __Block Diagram__
 
