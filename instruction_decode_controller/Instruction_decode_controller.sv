@@ -3,6 +3,7 @@
 `include "../addition_operation_controller/addition_operation_controller.sv" //It's the same as full code of addition_operation_controller coming and sitting in this place
 
 
+
 module instruction_decode_controller
   (clk, rst, start, instruction, busy, done, fetch_stage_enable, next_pc_to_cpu);
   
@@ -100,6 +101,7 @@ module instruction_decode_controller
         if(start)begin //Once CPU gives start signal start the operation of instruction-decode controller
           busy_temp <= 1; //Make the busy signal high, because operation has started for the controller
           done_temp <= 0; //Make the done signal low, because it is currently busy 
+          fetch_stage_enable_temp <= 0; //Write 0 to the poll register of CPU
           case(instruction[56:52])//Opcode indicates operation type
             ADD:begin
               operation_type_reg <= instruction[58:57]; //Flag indicates flag of operation e.g., I,J or R-type
@@ -134,7 +136,7 @@ module instruction_decode_controller
   
        wait_for_controller_to_finish:begin //Wait for sub-controller to finish operation
          if(done_from_add_controller && !(busy_from_add_controller))begin //Once sub-controller gives done as 1 and it is no more busy
-		 //indicates that operation of sub-controller is finished. So go to next state of making busy signal 0 and done signal 1 of current controller
+     //indicates that operation of sub-controller is finished. So go to next state of making busy signal 0 and done signal 1 of current controller
            busy_temp <= 0; //Make busy signal 0
            done_temp <= 1; //Make done signal 1
            fetch_stage_enable_temp <= 1; //Write 1 to the poll register of CPU

@@ -47,6 +47,8 @@
 //       |  output_module_BUSY |     input   |     1    |  Input busy signal, indicates output module is busy, cannot take next input                          |
 //       |_____________________|_____________|__________|______________________________________________________________________________________________________|
 
+
+
 module adder(
         input_a,
         input_b,
@@ -345,94 +347,3 @@ module adder(
   assign output_sum = output_sum_reg;
 
 endmodule
-
-
-
-/*////////////////////////////////////////1 Bit Full Adder////////////////////////////////////////////////////////////////
- 
-module full_adder 
-  (
-   clk_adder,
-   i_bit1,
-   i_bit2,
-   i_carry,
-   o_sum,
-   o_carry
-   );
-  
-  input  clk_adder;
-  input  i_bit1;
-  input  i_bit2;
-  input  i_carry;
-  output o_sum;
-  output o_carry;
-
-  wire   w_WIRE_1;
-  wire   w_WIRE_2;
-  wire   w_WIRE_3;
-  
-  wire o_sum_temp;
-  wire o_carry_temp;
-  
-  reg o_sum_reg;
-  reg o_carry_reg;
-      
-  assign w_WIRE_1 = i_bit1 ^ i_bit2;
-  assign w_WIRE_2 = w_WIRE_1 & i_carry;
-  assign w_WIRE_3 = i_bit1 & i_bit2;
-
-  assign o_sum_temp   = w_WIRE_1 ^ i_carry;
-  assign o_carry_temp = w_WIRE_2 | w_WIRE_3;
-  
-  //Pipeline
-  always@(posedge clk_adder)begin
-  o_sum_reg   <= o_sum_temp;
-  o_carry_reg <= o_carry_temp;
-  end
-
-  assign o_sum   = o_sum_reg;
-  assign o_carry = o_carry_reg;
-  // FYI: Code above using wires will produce the same results as:
-  // assign o_sum   = i_bit1 ^ i_bit2 ^ i_carry;
-  // assign o_carry = (i_bit1 ^ i_bit2) & i_carry) | (i_bit1 & i_bit2);
-
-  // Wires are just used to be explicit. 
-  
-endmodule // full_adder
-
-
-////////////////////////////////////////Parameterized Unsigned Ripplecarry Adder//////////////////////////////////////////////////////////////// 
-module ripple_carry_adder 
-  #(parameter WIDTH=22)
-  (
-   input clk_adder,
-   input [WIDTH-1:0] i_add_term1,
-   input [WIDTH-1:0] i_add_term2,
-   output [WIDTH:0]  o_result
-   );
-     
-  wire [WIDTH:0]     w_CARRY;
-  wire [WIDTH-1:0]   w_SUM;
-   
-  // No carry input on first full adder  
-  assign w_CARRY[0] = 1'b0;        
-   
-  genvar             ii;
-  generate 
-    for (ii=0; ii<WIDTH; ii=ii+1) 
-      begin
-        full_adder full_adder_inst
-            ( .clk_adder(clk_adder),
-              .i_bit1(i_add_term1[ii]),
-              .i_bit2(i_add_term2[ii]),
-              .i_carry(w_CARRY[ii]),
-              .o_sum(w_SUM[ii]),
-              .o_carry(w_CARRY[ii+1])
-              );
-      end
-  endgenerate
-   
-  assign o_result = {w_CARRY[WIDTH], w_SUM};   // Verilog Concatenation
- 
-endmodule // ripple_carry_adder
-*/

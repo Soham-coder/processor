@@ -218,7 +218,13 @@ always @(posedge clk)begin//always
  end//
  end///always
  
- endmodule  
+ endmodule
+  
+  
+         
+      
+  
+ 
 
 
   
