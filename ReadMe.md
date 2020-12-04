@@ -1,8 +1,8 @@
 
 
-Final waveform (Details will be updated soon...)
+__Final waveform__
 
-![Alt text](./Capture.PNG?raw=true "Capture")
+![Alt text](./wave.PNG?raw=true "WAVE")
 
 
 ```diff
