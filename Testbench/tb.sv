@@ -36,4 +36,9 @@ module tb;
     $finish; //Simulation stop after 200 timeunits
   end
   
+  
+  always@(posedge cpu_inst.fetch_stage_enable)begin // At every positive edge of fetch_stage_enable i.e., at end of every instruction complete print program counter value, Rd, content(Rd) 
+    $display("program counter - %d | Register destination address - %d | Destination value - %h", cpu_inst.program_counter, cpu_inst.top_cont_inst.reg_inst.WriteReg, cpu_inst.top_cont_inst.reg_inst.WriteData);  
+  end
+  
 endmodule
