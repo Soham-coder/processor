@@ -1,8 +1,19 @@
 
+__Top level state flow diagram__
+
+
+<p align="center">
+  <img src="./top_level_sf_diag.jpg?raw=true" alt="State Flow"/>
+</p>
+
+
+
 
 __Final waveform__
 
 ![Alt text](./wave.PNG?raw=true "WAVE")
+
+
 
 
 ```diff
