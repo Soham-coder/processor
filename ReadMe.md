@@ -17,6 +17,9 @@ Instruction 1 is loaded in PC[0]- 1st instruction is content(R1) + content(R2) =
 Instruction 1 is loaded in PC[1]- 1st instruction is content(R1) + 32 bit immediate value = content(R3) --> I type add instruction indicated by flag(01) and opcode(00000)
 {i.e., 2.0+0.0 should be stored in R3 after this operation}
 
+```diff
+- FIRST PART
+```
 At rst , we see from waveform program counter value is 0, i.e., it is fetching first instruction and executing it i.e., excersing state 0 and 2 and goes to state 1 (indicated by first state[1:0]) and wait for "fetch_stage_enable" poll register to become 1.
 We also see that top level controller i.e., instruction decode controller is started (see the signal "start_top_controller").
 For the first instruction instruction decode controller excercises states 0, 1 and 2.(indicated by second state[1:0] in waveform). In the 1 state it in turn starts the addition_operation sub_controller.
@@ -30,6 +33,9 @@ So the value that gets written into register(indicated by WriteData) is 5.0 and 
 
 After all stages of the CPU is complete, we notice that "fetch_stage_enable" register getting high indicating that CPU must fetch the next instruction to get executed.
 
+```diff
+- SECOND PART
+```
 We notice that rst is now low and next instruction is executed. CPU enters state 2 and then 1 (indicated by first state[1:0]) and again waits for "fetch_stage_enable" poll register to become 1.
 We also see that top level controller i.e., instruction decode controller is started (see the signal "start_top_controller").
 For the first instruction instruction decode controller excercises states 0, 1 and 2.(indicated by second state[1:0] in waveform). In the 1 state it in turn starts the addition_operation sub_controller.
