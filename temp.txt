@@ -1,13 +1,5 @@
+__Waveform Description__
 
-
-Final waveform (Details will be updated soon...)
-
-![Alt text](./Capture.PNG?raw=true "Capture")
-
-
-```diff
-@@ Wave Description@@
-```
 At first in testbench, Register[1] of register bank is initialised to 2.0, Register[2] is initialised to
 3.0
 
@@ -46,4 +38,3 @@ After all stages of the CPU is complete, we notice that "fetch_stage_enable" reg
 And the same process continues ...
 
 Since program counter value is stuck to 1 , same instruction is executed again and again with clock. 
-
