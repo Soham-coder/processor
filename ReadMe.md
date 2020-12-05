@@ -89,3 +89,7 @@ And the same process continues ...
 
 Since program counter value is stuck to 1 , same instruction is executed again and again with clock. 
 
+
+```diff
+- EDA Playground link to see hands on- https://www.edaplayground.com/x/Tc64 
+```
