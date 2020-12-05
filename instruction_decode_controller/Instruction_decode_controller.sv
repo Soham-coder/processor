@@ -1,5 +1,5 @@
 
-`include "../register_file/reg_file.v" //It's the same as full code of reg_file coming and sitting in this place
+`include "../register_file/reg_file.sv" //It's the same as full code of reg_file coming and sitting in this place
 `include "../addition_operation_controller/addition_operation_controller.sv" //It's the same as full code of addition_operation_controller coming and sitting in this place
 
 

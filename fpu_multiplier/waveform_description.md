@@ -51,9 +51,9 @@ Waveform description:
 
 1. At reset(rst), output signal mult_BUSY=0, output signal mult_output_STB=0, and output data lines(output mult) will be in don't care. Note that it gets the value at positive edge of clock so it is a little later.
 
-2. Next input_a and input_b are given and mult_input_STB is made 1. But the data is accepted by the multiplier only when (mult_input_STB==1) and (mult_BUSY==0) i.e., (STB) && (!BUSY) determines when adder will accept the given valid data (look at (a) and (b)) which is indicated by (transaction) signal in waveform.
+2. Next input_a and input_b are given and mult_input_STB is made 1. But the data is accepted by the multiplier only when (mult_input_STB==1) and (mult_BUSY==0) i.e., (STB) && (!BUSY) determines when multiplier will accept the given valid data (look at (a) and (b)) which is indicated by (transaction) signal in waveform.
 
-3. Next input_a and input_b are given after small delay . But note that multiplier is still BUSY so it cannot accept data even if it is valid (indicated by mult_input_STB).So if you see the state signal , the adder operates on first input data and stages from (0 to 11-hexadecimal_b) are excercised and BUSY signal is turned off. 
+3. Next input_a and input_b are given after small delay . But note that multiplier is still BUSY so it cannot accept data even if it is valid (indicated by mult_input_STB).So if you see the state signal , the multiplier operates on first input data and stages from (0 to 11-hexadecimal_b) are excercised and BUSY signal is turned off. 
 Only then inputs given are accepted by multiplier indicated by (transaction) line being high.
 
 4. Next input STB to multiplier is made low indicating that no more valid inputs. The multiplier processes on existing inputs and excercises from state (0-11-hexadecimal_b) and BUSY signal is turned off.
@@ -62,4 +62,4 @@ Only then inputs given are accepted by multiplier indicated by (transaction) lin
 
 6. At first 2 and 3 is given, so result is 6. And at second 4 and 5 is given, so result is 20.
 
-7. Note that all through out the operation, input (output_module_BUSY) signal is low indicating that output module that is connected to adder is ready to accept whenever valid output mult is given. 
+7. Note that all through out the operation, input (output_module_BUSY) signal is low indicating that output module that is connected to multiplier is ready to accept whenever valid output mult is given. 

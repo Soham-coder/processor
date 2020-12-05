@@ -1,6 +1,7 @@
 
 
-//________IEEE Floating Point Multiplier (Single Precision)________//
+
+//________IEEE Floating Point Divider (Single Precision)________//
 
 
 /////////////////////////////________Block Diagram________////////////////////////////////////////////////////////////////////////////////////////////
@@ -8,11 +9,11 @@
 
 
 //                        +------------------------+
-//          input_a     =>|                        |=> output_mult
+//          input_a     =>|                        |=> output_div
 //          input_b     =>|                        |
-//                        |      multiplier        |=> mult_output_STB
-//      mult_input_STB  =>|                        |<= output_module_BUSY
-//           mult_BUSY  <=|                        |
+//                        |      divider           |=> div_output_STB
+//      div_input_STB   =>|                        |<= output_module_BUSY
+//           div_BUSY   <=|                        |
 //                        +--------^-|-------------+
 //                clk______________| |
 //              rst__________________|
@@ -21,13 +22,13 @@
 
 /////////////////////////////________Specification________////////////////////////////////////////////////////////////////////////////////////////////
 
-//1. A transaction takes place any time the input STB line (mult_input_STB) is true and the output BUSY line (mult_BUSY) is false.
-//2. Multiplier needs to be careful not to ever lower the output BUSY line (mult_BUSY), unless it is ready to receive data.
-//3. The input STB (mult_input_STB) line should be raised any time input data is ready for sending. The data source must not wait for multiplier BUSY (mult_BUSY) to be false before raising the input STB line (mult_input_STB).
-//4. Busy should be IDLE or 0 (mult_BUSY) when multiplier is not busy.
-//5. Once input STB (mult_input_STB) is raised, the data being transferred cannot be changed until the clock after the transaction takes place.
-//6. The Data lines (output_mult) hold the previous valid output any time output STB (mult_output_STB) is false.
-//7. At Reset output mult_BUSY=0, output mult_output_STB=0, and output data lines will be in don't care.
+//1. A transaction takes place any time the input STB line (div_input_STB) is true and the output BUSY line (div_BUSY) is false.
+//2. Divider needs to be careful not to ever lower the output BUSY line (div_BUSY), unless it is ready to receive data.
+//3. The input STB (div_input_STB) line should be raised any time input data is ready for sending. The data source must not wait for divider BUSY (div_BUSY) to be false before raising the input STB line (div_input_STB).
+//4. Busy should be IDLE or 0 (div_BUSY) when divider is not busy.
+//5. Once input STB (div_input_STB) is raised, the data being transferred cannot be changed until the clock after the transaction takes place.
+//6. The Data lines (output_div) hold the previous valid output any time output STB (div_output_STB) is false.
+//7. At Reset output div_BUSY=0, output div_output_STB=0, and output data lines will be in don't care.
 
 
 /////////////////////////////________Port_____List________/////////////////////////////////////////////////////////////////////////////////////////////
@@ -38,44 +39,46 @@
 //       |_____________________|_____________|__________|___________________________________________________________________________________________________________|
 //       |  input_a            |     input   |     32   |  Input operand a                                                                                          |
 //       |  input_b            |     input   |     32   |  Input operand b                                                                                          |
-//       |  mult_input_STB     |     input   |     1    |  Input valid signal, indicates input is valid                                                             |
-//       |  mult_BUSY          |     output  |     1    |  Output busy signal, indicates multiplier is busy and cannot process next input until current one is done |
+//       |  div_input_STB      |     input   |     1    |  Input valid signal, indicates input is valid                                                             |
+//       |  div_BUSY           |     output  |     1    |  Output busy signal, indicates divider is busy and cannot process next input until current one is done    |
 //       |  clk                |     input   |     1    |  Clock sample                                                                                             |
 //       |  rst                |     input   |     1    |  Active high reset                                                                                        |
-//       |  output_mult        |     output  |     32   |  Output multiplication result                                                                             |
-//       |  mult_output_STB    |     output  |     1    |  Output valid signal, indicates output is valid                                                           |
+//       |  output_div         |     output  |     32   |  Output division result                                                                                   |
+//       |  div_output_STB     |     output  |     1    |  Output valid signal, indicates output is valid                                                           |
 //       |  output_module_BUSY |     input   |     1    |  Input busy signal, indicates output module is busy, cannot take next input                               |
 //       |_____________________|_____________|__________|___________________________________________________________________________________________________________| 
 
-module multiplier(
+
+module divider(
         input_a,
         input_b,
-        mult_input_STB,
-        mult_BUSY,
+        div_input_STB,
+	    div_BUSY,
         clk,
         rst,
-        output_mult,
-        mult_output_STB,
+        output_div,
+        div_output_STB,
         output_module_BUSY
-		);
+        );
 
   input     clk;
   input     rst;
 
   input     [31:0] input_a;
   input     [31:0] input_b;
-  
-  input     mult_input_STB;
-  output    mult_BUSY;
 
-  output    [31:0] output_mult;
-  output    mult_output_STB;
+  input     div_input_STB;
+  output    div_BUSY;
+  
+
+  output    [31:0] output_div;
+  output    div_output_STB;
   input     output_module_BUSY;
 
   //Intermediate registers
-  reg       mult_output_STB_reg;
-  reg       [31:0] output_mult_reg;
-  reg       mult_BUSY_reg;
+  reg       div_output_STB_reg;
+  reg       [31:0] output_div_reg;
+  reg       div_BUSY_reg;
 
   reg       [3:0] state;
   parameter get_a_and_b   = 4'd0,
@@ -83,37 +86,41 @@ module multiplier(
             special_cases = 4'd2,
             normalise_a   = 4'd3,
             normalise_b   = 4'd4,
-            multiply_0    = 4'd5,
-            multiply_1    = 4'd6,
-            normalise_1   = 4'd7,
-            normalise_2   = 4'd8,
-            round         = 4'd9,
-            pack          = 4'd10,
-            put_z         = 4'd11;
+            divide_0      = 4'd5,
+            divide_1      = 4'd6,
+            divide_2      = 4'd7,
+            divide_3      = 4'd8,
+            normalise_1   = 4'd9,
+            normalise_2   = 4'd10,
+            round         = 4'd11,
+            pack          = 4'd12,
+            put_z         = 4'd13;
 
   reg       [31:0] a, b, z;
   reg       [23:0] a_m, b_m, z_m;
   reg       [9:0] a_e, b_e, z_e;
   reg       a_s, b_s, z_s;
   reg       guard, round_bit, sticky;
-  reg       [49:0] product;
+  reg       [50:0] quotient, divisor, dividend, remainder;
+  reg       [5:0] count;
 
   always @(posedge clk)
   begin
 
     case(state)
 
-	  
-	  get_a_and_b: //Initial state wait for valid inputs and make BUSY = 0 because it has finished previous operation 
+
+      get_a_and_b: //Initial state wait for valid inputs and make BUSY = 0 because it has finished previous operation 
       begin
-        mult_BUSY_reg <= 0;
-        if (!(mult_BUSY_reg) && mult_input_STB) begin  //Once it gets valid input take that input and start processing.
+        div_BUSY_reg <= 0;
+        if (!(div_BUSY_reg) && div_input_STB) begin  //Once it gets valid input take that input and start processing.
           a <= input_a;
-		  b <= input_b;
-          mult_BUSY_reg <= 1; //Turn the BUSY signal on, BUSY = 1 because now it will be busy processing latched inputs and can no more take inputs even if it is valid. 
+          b <= input_b;
+          div_BUSY_reg <= 1; //Turn the BUSY signal on, BUSY = 1 because now it will be busy processing latched inputs and can no more take inputs even if it is valid. 
           state <= unpack;
         end
       end
+
 
       unpack:
       begin
@@ -135,31 +142,32 @@ module multiplier(
           z[22] <= 1;
           z[21:0] <= 0;
           state <= put_z;
+          //if a is inf and b is inf return NaN 
+        end else if ((a_e == 128) && (b_e == 128)) begin
+          z[31] <= 1;
+          z[30:23] <= 255;
+          z[22] <= 1;
+          z[21:0] <= 0;
+          state <= put_z;
         //if a is inf return inf
         end else if (a_e == 128) begin
           z[31] <= a_s ^ b_s;
           z[30:23] <= 255;
           z[22:0] <= 0;
-          //if b is zero return NaN
-          if (($signed(b_e) == -127) && (b_m == 0)) begin
+          state <= put_z;
+           //if b is zero return NaN
+          if ($signed(b_e == -127) && (b_m == 0)) begin
             z[31] <= 1;
             z[30:23] <= 255;
             z[22] <= 1;
             z[21:0] <= 0;
+            state <= put_z;
           end
-          state <= put_z;
-        //if b is inf return inf
+        //if b is inf return zero
         end else if (b_e == 128) begin
           z[31] <= a_s ^ b_s;
-          z[30:23] <= 255;
+          z[30:23] <= 0;
           z[22:0] <= 0;
-          //if a is zero return NaN
-          if (($signed(a_e) == -127) && (a_m == 0)) begin
-            z[31] <= 1;
-            z[30:23] <= 255;
-            z[22] <= 1;
-            z[21:0] <= 0;
-          end
           state <= put_z;
         //if a is zero return zero
         end else if (($signed(a_e) == -127) && (a_m == 0)) begin
@@ -167,10 +175,18 @@ module multiplier(
           z[30:23] <= 0;
           z[22:0] <= 0;
           state <= put_z;
-        //if b is zero return zero
+           //if b is zero return NaN
+          if (($signed(b_e) == -127) && (b_m == 0)) begin
+            z[31] <= 1;
+            z[30:23] <= 255;
+            z[22] <= 1;
+            z[21:0] <= 0;
+            state <= put_z;
+          end
+        //if b is zero return inf
         end else if (($signed(b_e) == -127) && (b_m == 0)) begin
           z[31] <= a_s ^ b_s;
-          z[30:23] <= 0;
+          z[30:23] <= 255;
           z[22:0] <= 0;
           state <= put_z;
         end else begin
@@ -203,33 +219,60 @@ module multiplier(
       normalise_b:
       begin
         if (b_m[23]) begin
-          state <= multiply_0;
+          state <= divide_0;
         end else begin
           b_m <= b_m << 1;
           b_e <= b_e - 1;
         end
       end
 
-      multiply_0:
+      divide_0:
       begin
         z_s <= a_s ^ b_s;
-        z_e <= a_e + b_e + 1;
-        product <= a_m * b_m * 4;
-        state <= multiply_1;
+        z_e <= a_e - b_e;
+        quotient <= 0;
+        remainder <= 0;
+        count <= 0;
+        dividend <= a_m << 27;
+        divisor <= b_m;
+        state <= divide_1;
       end
 
-      multiply_1:
+      divide_1:
       begin
-        z_m <= product[49:26];
-        guard <= product[25];
-        round_bit <= product[24];
-        sticky <= (product[23:0] != 0);
+        quotient <= quotient << 1;
+        remainder <= remainder << 1;
+        remainder[0] <= dividend[50];
+        dividend <= dividend << 1;
+        state <= divide_2;
+      end
+
+      divide_2:
+      begin
+        if (remainder >= divisor) begin
+          quotient[0] <= 1;
+          remainder <= remainder - divisor;
+        end
+        if (count == 49) begin
+          state <= divide_3;
+        end else begin
+          count <= count + 1;
+          state <= divide_1;
+        end
+      end
+
+      divide_3:
+      begin
+        z_m <= quotient[26:3];
+        guard <= quotient[2];
+        round_bit <= quotient[1];
+        sticky <= quotient[0] | (remainder != 0);
         state <= normalise_1;
       end
 
       normalise_1:
       begin
-        if (z_m[23] == 0) begin
+        if (z_m[23] == 0 && $signed(z_e) > -126) begin
           z_e <= z_e - 1;
           z_m <= z_m << 1;
           z_m[0] <= guard;
@@ -280,29 +323,28 @@ module multiplier(
         end
         state <= put_z;
       end
-	  
-	  put_z: //Final state valid output is ready , make the output STB/VALID = 1, put valid output.
+      
+      put_z: //Final state valid output is ready , make the output STB/VALID = 1, put valid output.
       begin
-        mult_output_STB_reg <= 1;
-        output_mult_reg <= z;
-        if (mult_output_STB_reg && !(output_module_BUSY)) begin //Once output module is no more BUSY it lowers it's busy signal and output is then taken by next module.
-          mult_output_STB_reg <= 0; //Output is no more valid.
+        div_output_STB_reg <= 1;
+        output_div_reg <= z;
+        if (div_output_STB_reg && !(output_module_BUSY)) begin //Once output module is no more BUSY it lowers it's busy signal and output is then taken by next module.
+          div_output_STB_reg <= 0; //Output is no more valid.
           state <= get_a_and_b; //Go back to initial state.
         end
       end
 
     endcase
-
-	
-	 if (rst == 1) begin //At Active high reset, module is no more BUSY, go to initial state and wait for valid inputs. Input is don't care and output is don't care , so output VALID/STB = 0.
+    
+    if (rst == 1) begin //At Active high reset, module is no more BUSY, go to initial state and wait for valid inputs. Input is don't care and output is don't care , so output VALID/STB = 0.
       state <= get_a_and_b;
-      mult_BUSY_reg <= 0; 
-      mult_output_STB_reg <= 0;
+      div_BUSY_reg <= 0; 
+      div_output_STB_reg <= 0;
     end
 
   end
-  
-  
+
+   
    `ifdef SYNTHESIS_OFF //Purely combinational logic for debugging purpose, based on hexadecimal encoded states it will show named states in waveform 
    //see this register "statename" in ASCII in dump
   reg [8*13:0] statename;//Highest 13 Number of ASCII letters each 8 bits.
@@ -313,23 +355,25 @@ module multiplier(
       (state === special_cases): statename = "SPECIAL_CASES";//13 ASCII letters
       (state === normalise_a)  : statename = "NORMALISE_A";
       (state === normalise_b)  : statename = "NORMALISE_B";
-      (state === multiply_0)   : statename = "MULTIPLY_0";
-      (state === multiply_1)   : statename = "MULTIPLY_1";
+      (state === divide_0)     : statename = "DIVIDE_0";
+      (state === divide_1)     : statename = "DIVIDE_1";
+      (state === divide_2)     : statename = "DIVIDE_2";
+      (state === divide_3)     : statename = "DIVIDE_3";
       (state === normalise_1)  : statename = "NORMALIZE_1";
       (state === normalise_2)  : statename = "NORMALIZE_2";
       (state === round)        : statename = "ROUND";
       (state === pack)         : statename = "PACK";
-	  (state === put_z)        : statename = "PUT_Z";
+      (state === put_z)        : statename = "PUT_Z";
     endcase
   end//always
   `endif
-  
-  
+
 
   //Continuous assignments
   
-  assign mult_BUSY = mult_BUSY_reg;
-  assign mult_output_STB = mult_output_STB_reg;
-  assign output_mult = output_mult_reg;
+  assign div_BUSY = div_BUSY_reg;
+  assign div_output_STB = div_output_STB_reg;
+  assign output_div = output_div_reg;
 
 endmodule
+
