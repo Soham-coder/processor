@@ -19,16 +19,39 @@ __Final waveform__
 ```diff
 @@ Wave Description@@
 ```
-At first in testbench, Register[1] of register bank/file is initialised to 2.0, Register[2] is initialised to
-3.0
+At first, in testbench, 
+Register[1] of register bank/file is initialised to 2.0
+Register[2] is initialised to 3.0
 
-Instruction 1 is loaded in PC[0]- 1st instruction is content(R1) + content(R2) = content(R3) 
+```diff
+- Instruction 1 = {2'b00, 5'b00000, 5'b00011, 5'b00001, 5'b00010, 5'b00000, 32'b0}
+# Flag(00) - Register operation
+# Opcode(00000) - ADD operation
+# Rd(00011) - Destination Register address = 3
+# Rs1(00001) - Source_1 Register address = 1
+# Rs2(00010) - Source_2 Register address = 2
+# Program_counter_value(00000) - Current instruction number = 0
+# 32_bit immediate value(32'b0) - 32_bit immediate value = 32'b0
+
+Instruction 1 is loaded in PC[0]- 
+1st instruction is content(R1) + content(R2) = content(R3) 
 --> R type add instruction indicated by flag(00) and opcode(00000)
 {i.e., 2.0+3.0 should be stored in R3 after this operation}
 
-Instruction 2 is loaded in PC[1]- 2nd instruction is content(R1) + 32 bit immediate value = content(R3) 
+- Intruction 2 = {2'b01, 5'b00000, 5'b00011, 5'b00001, 5'b00010, 5'b00000, 32'b0}
+# Flag(01) - Immediate operation
+# Opcode(00000) - ADD operation
+# Rd(00011) - Destination Register address = 3
+# Rs1(00001) - Source_1 Register address = 1
+# Rs2(00010) - Source_2 Register address = 2
+# Program_counter_value(00001) - Current instruction number = 1
+# 32_bit immediate value(32'b0) - 32_bit immediate value = 32'b0
+
+Instruction 2 is loaded in PC[1]- 
+2nd instruction is content(R1) + 32 bit immediate value = content(R3) 
 --> I type add instruction indicated by flag(01) and opcode(00000)
 {i.e., 2.0+0.0 should be stored in R3 after this operation}
+```
 
 ```diff
 - FIRST PART
