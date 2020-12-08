@@ -59,25 +59,27 @@ Instruction 2 is loaded in PC[1]-
 ```diff
 - FIRST PART
 ```
-At rst , we see from waveform, program counter value is 0, i.e., it is fetching first instruction and executing it i.e., CPU excersises state 0 and 2 and goes to state 1 (indicated by first state[1:0]) and wait for "fetch_stage_enable" poll register to become 1.
+At rst , we see from waveform, program counter value is 0, i.e., it is fetching first instruction and executing it 
+
+- CPU excersises state 0 and 2 and goes to state 1 (indicated by "cpu_state[1:0]") and wait for "fetch_stage_enable" poll register to become 1.
 
 We also see that top level controller i.e., instruction decode controller is started (see the signal "start_top_controller").
 
-For the first instruction instruction decode controller excercises states 0, 1 and 2.(indicated by second state[1:0] in waveform). 
+- For the first instruction instruction decode controller excercises states 0, 1 and 2.(indicated by second "top_cnt_state[1:0]" in waveform). 
 
-In the 1 state it in turn starts the addition_operation sub_controller.
+In the 1 state top controller in turn starts the addition_operation sub_controller.
 
-The addition operation subcontroller excercises states 0,1,2,3,4,5,6 (indicated by second state[3:0] in waveform).
+- The addition operation subcontroller excercises states 0,1,2,3,4,5,6 (indicated by "add_cnt_state[3:0]" in waveform).
 
-In the state 2 it inturn starts the fpu_adder by giving it proper input strobes and data and checking output busy not high.
+In the state 2 addition operation subcontroller inturn starts the fpu_adder by giving it proper input strobes and data and making "output_module_busy" = 0 (i.e., output module is always ready to accept adder output)
 
-Fpu_adder excercises states 0,1,2,3,4,5,6,7,8,9,10(hex-a) and after that output is latched by checking output strobe and input busy signal.
+- Fpu_adder excercises states 0,1,2,3,4,5,6,7,8,9,10(hex-a) depending upon nature of inputs a & b, and after that output is latched/taken by addition operation controller by checking output strobe and input busy signal.
 
 We see the inputs to the adder (indicated by a and b) are 2 and 3 respectively for first instruction and output sum (indicated by output_sum) is 5.
 
 Operation type/Flag (indicated by operation_type) is 0 indicating that it is a register operation.
 
-So the value that gets written into register(indicated by WriteData) is 5.0 and the address of the destination register(indicated by WriteReg) is 3 which is correct. 
+So, the value that gets written into register(indicated by WriteData) is 5.0 and the address of the destination register(indicated by WriteReg) is 3 which should be the case 
 
 "RegWrite" is the write enable signal which indicates when write will occur to register file.  
 
@@ -88,34 +90,47 @@ After all stages of the CPU gets completed, we notice that "fetch_stage_enable" 
 ```diff
 - SECOND PART
 ```
-We notice that rst is now low and next instruction is to be executed. CPU enters state 2 and then 1 (indicated by first state[1:0]) and again waits for "fetch_stage_enable" poll register to become 1.
+We notice that rst has now gone low and next instruction is to be executed. Program counter value is incremented to 1.
+
+- CPU enters state 2 and then 1 (indicated by "cpu_state[1:0]") and again waits for "fetch_stage_enable" poll register to become 1.
 
 We also see that top level controller i.e., instruction decode controller is started (see the signal "start_top_controller").
 
-For the second instruction instruction decode controller excercises states 0, 1 and 2.(indicated by second state[1:0] in waveform). 
-In the 1 state it in turn starts the addition_operation sub_controller.
+- For the second instruction, instruction decode controller excercises states 0, 1 and 2.(indicated by "top_cnt_state[1:0]" in waveform). 
 
-The addition operation subcontroller excercises states 0,1,2,3,4,5,6 (indicated by second state[3:0] in waveform).
+In the 1 state top controller in turn starts the addition_operation sub_controller.
 
-In the state 2 it inturn starts the fpu_adder by giving it proper input strobes and data and checking output busy not high.
+- The addition operation subcontroller excercises states 0,1,2,3,4,5,6 (indicated by "add_cnt_state[3:0]" in waveform).
 
-Fpu_adder excercises states 0,1,2,10(hex-a) and after that output is latched by checking output strobe and input busy signal.
+In the state 2 addition operation subcontroller inturn starts the fpu_adder by giving it proper input strobes and data and making "output_module_busy" = 0 (i.e., output module is always ready to accept adder output)
+
+- Fpu_adder excercises states 0,1,2,10(hex-a) depending upon nature of inputs a & b, and after that output is latched/taken by addition operation controller by checking output strobe and input busy signal.
+
+Since the inputs a and b are not denormalised numbers , so fpu_adder excercises smaller number of states thus not wasting idle clock cycles and efficiently managing power.
 
 We see the inputs to the adder (indicated by a and b) are 2 and 0 respectively for second instruction and output sum (indicated by output_sum) is 2.
 
 Operation type/Flag (indicated by operation_type) is 1 indicating that it is a immediate operation.
+
+So immediate value 0.0 is taken.
 
 So the value that gets written into register(indicated by WriteData) is 2.0 and the address of the destination register(indicated by WriteReg) is 3 which is correct. 
 
 "RegWrite" is the write enable signal which indicates when write will occur to register file.  
 
 After all stages of the CPU gets completed, we notice that "fetch_stage_enable" register getting high indicating that CPU must fetch the next instruction to get executed.
-
-And the same process continues ...
-
-Since program counter value is stuck to 1 , same instruction is executed again and again with clock. 
+  
 
 
 ```diff
-- EDA Playground link to see hands on- https://www.edaplayground.com/x/Tc64 
+- THIRD PART
+```
+Program Counter now gets incremented to 2. But no valid instruction is present in PC[2]. 
+
+So nothing happens and PC gets stuck to 2.
+
+
+
+```diff
+! EDA Playground link to see hands on- https://www.edaplayground.com/x/Tc64 
 ```
