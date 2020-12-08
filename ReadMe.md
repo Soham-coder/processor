@@ -20,7 +20,9 @@ __Final waveform__
 @@ Wave Description@@
 ```
 At first, in testbench, 
+
 Register[1] of register bank/file is initialised to 2.0
+
 Register[2] is initialised to 3.0
 
 ```diff
