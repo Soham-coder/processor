@@ -46,7 +46,7 @@ Instruction 1 is loaded in PC[0]-
 # R type add instruction indicated by flag(00) and opcode(00000)
 {i.e., 2.0+3.0 should be stored in R3 after this operation}
 
-+ Intruction 2 = {2'b01, 5'b00000, 5'b00011, 5'b00001, 5'b00010, 5'b00000, 32'b0}
++ Intruction 2 = {2'b01, 5'b00000, 5'b00011, 5'b00001, 5'b00010, 5'b00001, 32'b0}
 # Flag(01) - Immediate operation
 # Opcode(00000) - ADD operation
 # Rd(00011) - Destination Register address = 3
