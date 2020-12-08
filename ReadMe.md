@@ -19,13 +19,19 @@ __Final waveform__
 ```diff
 @@ Wave Description@@
 ```
+
+
+```diff
+- INITIALISATION
+```
+```diff
 At first, in testbench, 
 
 Register[1] of register bank/file is initialised to 2.0
 
 Register[2] is initialised to 3.0
 
-```diff
+
 + Instruction 1 = {2'b00, 5'b00000, 5'b00011, 5'b00001, 5'b00010, 5'b00000, 32'b0}
 # Flag(00) - Register operation
 # Opcode(00000) - ADD operation
@@ -54,6 +60,7 @@ Instruction 2 is loaded in PC[1]-
 # I type add instruction indicated by flag(01) and opcode(00000)
 {i.e., 2.0+0.0 should be stored in R3 after this operation}
 ```
+
 
 
 ```diff
