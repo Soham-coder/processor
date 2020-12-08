@@ -1,9 +1,6 @@
 # program counter -  0 | Register destination address -  3 | Destination value - 40a00000
 # program counter -  1 | Register destination address -  3 | Destination value - 40000000
-# program counter -  1 | Register destination address -  3 | Destination value - 40000000
-# program counter -  1 | Register destination address -  3 | Destination value - 40000000
-# program counter -  1 | Register destination address -  3 | Destination value - 40000000
-# ** Note: $finish    : testbench.sv(35)
+# ** Note: $finish    : testbench.sv(71)
 #    Time: 200 ns  Iteration: 0  Instance: /tb
-# End time: 00:49:01 on Dec 04,2020, Elapsed time: 0:00:01
+# End time: 01:55:42 on Dec 08,2020, Elapsed time: 0:00:01
 # Errors: 0, Warnings: 0

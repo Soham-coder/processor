@@ -85,7 +85,7 @@ module instruction_decode_controller
     .write_enable(write_enable)
   );
   
-  reg [1:0] state; //State register to hold current state of controller
+  reg [1:0] top_cnt_state; //State register to hold current state of controller
   
   //States of controller
   parameter instruction_decode = 2'd0,
@@ -96,7 +96,7 @@ module instruction_decode_controller
   parameter ADD = 5'd0;
   
   always@(posedge clk)begin//always
-    case(state)
+    case(top_cnt_state)
       instruction_decode:begin
         if(start)begin //Once CPU gives start signal start the operation of instruction-decode controller
           busy_temp <= 1; //Make the busy signal high, because operation has started for the controller
@@ -110,13 +110,13 @@ module instruction_decode_controller
               source_2_address_reg <= instruction[41:37]; //Source 2 address indicates the source register address of the second operand
               pc_reg <= instruction[36:32]; //Indicates the current PC value
               source_immediate_value_reg <= instruction[31:0]; //Immediate 32 bit value or operand in case of immediate operation
-              state <= start_controller; //Next state of starting the add operation controller
+              top_cnt_state <= start_controller; //Next state of starting the add operation controller
             end  
           endcase
         end//if
         else begin
           busy_temp <= 0; //In case CPU don't give start signal make the busy signal low
-          state<= instruction_decode; //In case no start signal remain in same state
+          top_cnt_state<= instruction_decode; //In case no start signal remain in same state
         end
       end
       
@@ -130,7 +130,7 @@ module instruction_decode_controller
         source_immediate_value <= source_immediate_value_reg; //Get the 32 bit source immediate value
         if (busy_from_add_controller) begin //Once gets busy from sub-controller or add-operation controller make the start signal of sub-controller as 0
           start_add_controller <= 0; //Make the start signal of sub-controller as 0
-          state <= wait_for_controller_to_finish; //Go to the next state of waiting for sub-controller to finish operation
+          top_cnt_state <= wait_for_controller_to_finish; //Go to the next state of waiting for sub-controller to finish operation
         end
         end
   
@@ -140,7 +140,7 @@ module instruction_decode_controller
            busy_temp <= 0; //Make busy signal 0
            done_temp <= 1; //Make done signal 1
            fetch_stage_enable_temp <= 1; //Write 1 to the poll register of CPU
-           state <= instruction_decode; //Return to the first state of instruction decode
+           top_cnt_state <= instruction_decode; //Return to the first state of instruction decode
          end
        end
     endcase
@@ -150,7 +150,7 @@ module instruction_decode_controller
  if (rst) begin// In case of reset initialise these values to 0 and make rest all values are automatically don't care.
  busy_temp <= 0; //Make busy signal 0
  done_temp <= 0; //Make done signal 0
- state <= instruction_decode; //Go to the first state of instruction decode
+ top_cnt_state <= instruction_decode; //Go to the first state of instruction decode
  end
  end
 endmodule

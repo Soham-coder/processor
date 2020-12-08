@@ -38,7 +38,7 @@ program_counter pc_inst
 	 .dout(instr_out_from_pc)
 	 );	 
 
-reg [1:0] state;
+reg [1:0] cpu_state;
 //States of CPU
 parameter fetch_first_instruction = 2'd0,
           fetch_instruction = 2'd1,
@@ -47,20 +47,20 @@ parameter fetch_first_instruction = 2'd0,
 
 always@(posedge clk)begin
 
-case(state)
+case(cpu_state)
 
 fetch_first_instruction: begin// In case of rst signal go to state- fetch_first_instruction
 program_counter <= 0; // Give address 0 to program counter i.e., fetch first instruction
-state <= start_instruction_decode_controller; // Go to state of starting the top level instruction decode controller
+cpu_state <= start_instruction_decode_controller; // Go to state of starting the top level instruction decode controller
 end//
 
 fetch_instruction: begin // Go to the state of fetch next instruction after 1st instruction is complete
 if(fetch_stage_enable)begin // Poll the register "fetch_stage_enable" --> In case it is 1, it indicates that previous instruction is completed by sub-controller+top-controller 
 // and we need to fetch next instruction 
 program_counter <= next_pc_to_cpu;// Give the next pc value/address to program counter as given by sub-controller
-state <= start_instruction_decode_controller; // Start the top level instruction decode controller
+cpu_state <= start_instruction_decode_controller; // Start the top level instruction decode controller
 end else begin
-state<=fetch_instruction; // If "fetch_stage_enable" register is 0, remain in the same state
+cpu_state<=fetch_instruction; // If "fetch_stage_enable" register is 0, remain in the same state
 end
 end//
 
@@ -70,7 +70,7 @@ instr_in_to_controller <= instr_out_from_pc; // Give the next instruction to the
 start_top_controller <= 1; // Start the top level instruction_decode_controller
 if(busy)begin // If top level instruction_decode_controller have become busy turn off the controller
 start_top_controller <= 0; // Turn off the controller i.e., make the start signal of controller as 0
-state <= fetch_instruction; // Go to the state of fetching next instruction
+cpu_state <= fetch_instruction; // Go to the state of fetching next instruction
 end
 end//  
 
@@ -81,7 +81,7 @@ end//always
 
 always@(posedge clk)begin
 if(rst)begin
-state <= fetch_first_instruction; // If rst is high , go to the state of fetch_first_instruction i.e., fetch the first instruction
+cpu_state <= fetch_first_instruction; // If rst is high , go to the state of fetch_first_instruction i.e., fetch the first instruction
 end
 end
 

@@ -81,7 +81,7 @@ module adder(
   reg       [31:0] output_sum_reg;
   reg       adder_BUSY_reg;
 
-  reg       [3:0] state;
+  reg       [3:0] adder_state;
   
   parameter get_a_and_b   = 4'd0,
             unpack        = 4'd1,
@@ -106,7 +106,7 @@ module adder(
   always @(posedge clk)
   begin
 
-    case(state)
+    case(adder_state)
 
       get_a_and_b: //Initial state wait for valid inputs and make BUSY = 0 because it has finished previous operation 
       begin
@@ -115,7 +115,7 @@ module adder(
           a <= input_a;
 		  b <= input_b;
           adder_BUSY_reg <= 1; //Turn the BUSY signal on, BUSY = 1 because now it will be busy processing latched inputs and can no more take inputs even if it is valid. 
-          state <= unpack;
+          adder_state <= unpack;
         end
       end
 
@@ -128,7 +128,7 @@ module adder(
         b_e <= b[30 : 23] - 127;
         a_s <= a[31];
         b_s <= b[31];
-        state <= special_cases;
+        adder_state <= special_cases;
       end
 
       special_cases:
@@ -139,7 +139,7 @@ module adder(
           z[30:23] <= 255;
           z[22] <= 1;
           z[21:0] <= 0;
-          state <= put_z;
+          adder_state <= put_z;
         //if a is inf return inf
         end else if (a_e == 128) begin
           z[31] <= a_s;
@@ -152,31 +152,31 @@ module adder(
               z[22] <= 1;
               z[21:0] <= 0;
           end
-          state <= put_z;
+          adder_state <= put_z;
         //if b is inf return inf
         end else if (b_e == 128) begin
           z[31] <= b_s;
           z[30:23] <= 255;
           z[22:0] <= 0;
-          state <= put_z;
+          adder_state <= put_z;
         //if a is zero return b
         end else if ((($signed(a_e) == -127) && (a_m == 0)) && (($signed(b_e) == -127) && (b_m == 0))) begin
           z[31] <= a_s & b_s;
           z[30:23] <= b_e[7:0] + 127;
           z[22:0] <= b_m[26:3];
-          state <= put_z;
+          adder_state <= put_z;
         //if a is zero return b
         end else if (($signed(a_e) == -127) && (a_m == 0)) begin
           z[31] <= b_s;
           z[30:23] <= b_e[7:0] + 127;
           z[22:0] <= b_m[26:3];
-          state <= put_z;
+          adder_state <= put_z;
         //if b is zero return a
         end else if (($signed(b_e) == -127) && (b_m == 0)) begin
           z[31] <= a_s;
           z[30:23] <= a_e[7:0] + 127;
           z[22:0] <= a_m[26:3];
-          state <= put_z;
+          adder_state <= put_z;
         end else begin
           //Denormalised Number
           if ($signed(a_e) == -127) begin
@@ -190,7 +190,7 @@ module adder(
           end else begin
             b_m[26] <= 1;
           end
-          state <= align;
+          adder_state <= align;
         end
       end
 
@@ -205,7 +205,7 @@ module adder(
           a_m <= a_m >> 1;
           a_m[0] <= a_m[0] | a_m[1];
         end else begin
-          state <= add_0;
+          adder_state <= add_0;
         end
       end
 
@@ -224,7 +224,7 @@ module adder(
             z_s <= b_s;
           end
         end
-        state <= add_1;
+        adder_state <= add_1;
       end
 
       add_1:
@@ -241,7 +241,7 @@ module adder(
           round_bit <= sum[1];
           sticky <= sum[0];
         end
-        state <= normalise_1;
+        adder_state <= normalise_1;
       end
 
       normalise_1:
@@ -253,7 +253,7 @@ module adder(
           guard <= round_bit;
           round_bit <= 0;
         end else begin
-          state <= normalise_2;
+          adder_state <= normalise_2;
         end
       end
 
@@ -266,7 +266,7 @@ module adder(
           round_bit <= guard;
           sticky <= sticky | round_bit;
         end else begin
-          state <= round;
+          adder_state <= round;
         end
       end
 
@@ -278,7 +278,7 @@ module adder(
             z_e <=z_e + 1;
           end
         end
-        state <= pack;
+        adder_state <= pack;
       end
 
       pack:
@@ -298,7 +298,7 @@ module adder(
           z[30 : 23] <= 255;
           z[31] <= z_s;
         end
-        state <= put_z;
+        adder_state <= put_z;
       end
 
       put_z: //Final state valid output is ready , make the output STB/VALID = 1, put valid output.
@@ -307,14 +307,14 @@ module adder(
         output_sum_reg <= z;
         if (adder_output_STB_reg && !(output_module_BUSY)) begin //Once output module is no more BUSY it lowers it's busy signal and output is then taken by next module.
           adder_output_STB_reg <= 0; //Output is no more valid.
-          state <= get_a_and_b; //Go back to initial state.
+          adder_state <= get_a_and_b; //Go back to initial state.
         end
       end
 
     endcase
 
     if (rst == 1) begin //At Active high reset, module is no more BUSY, go to initial state and wait for valid inputs. Input is don't care and output is don't care , so output VALID/STB = 0.
-      state <= get_a_and_b;
+      adder_state <= get_a_and_b;
       adder_BUSY_reg <= 0; 
       adder_output_STB_reg <= 0;
     end
@@ -322,21 +322,21 @@ module adder(
   end
   
   `ifdef SYNTHESIS_OFF //Purely combinational logic for debugging purpose, based on hexadecimal encoded states it will show named states in waveform 
-  //see this register "statename" in ASCII in dump
-  reg [8*13:0] statename;//Highest 13 Number of ASCII letters each 8 bits.
+  //see this register "adder_statename" in ASCII in dump
+  reg [8*13:0] adder_statename;//Highest 13 Number of ASCII letters each 8 bits.
   always@* begin
     case (1'b1)
-      (state === get_a_and_b)  : statename = "GET_A_AND_B";
-      (state === unpack)       : statename = "UNPACK";
-      (state === special_cases): statename = "SPECIAL_CASES";//13 ASCII letters
-      (state === align)        : statename = "ALIGN";
-      (state === add_0)        : statename = "ADD_0";
-      (state === add_1)        : statename = "ADD_1";
-      (state === normalise_1)  : statename = "NORMALIZE_1";
-      (state === normalise_2)  : statename = "NORMALIZE_2";
-      (state === round)        : statename = "ROUND";
-      (state === pack)         : statename = "PACK";
-      (state === put_z)        : statename = "PUT_Z";
+      (adder_state === get_a_and_b)  : adder_statename = "GET_A_AND_B";
+      (adder_state === unpack)       : adder_statename = "UNPACK";
+      (adder_state === special_cases): adder_statename = "SPECIAL_CASES";//13 ASCII letters
+      (adder_state === align)        : adder_statename = "ALIGN";
+      (adder_state === add_0)        : adder_statename = "ADD_0";
+      (adder_state === add_1)        : adder_statename = "ADD_1";
+      (adder_state === normalise_1)  : adder_statename = "NORMALIZE_1";
+      (adder_state === normalise_2)  : adder_statename = "NORMALIZE_2";
+      (adder_state === round)        : adder_statename = "ROUND";
+      (adder_state === pack)         : adder_statename = "PACK";
+      (adder_state === put_z)        : adder_statename = "PUT_Z";
     endcase
   end//always
   `endif

@@ -76,7 +76,7 @@ reg write_enable_temp;//Immediate variable
                       .output_module_BUSY(BUSY_to_adder)
                       ); 
 
-reg [3:0] state;//State variable to store current state
+reg [3:0] add_cnt_state;//State variable to store current state
  
 //Output assignments
 assign rs1 = rs1_reg;
@@ -102,7 +102,7 @@ parameter give_address_to_register_file=3'd0,
 
 always @(posedge clk)begin//always
  
- case (state)
+ case (add_cnt_state)
  
  give_address_to_register_file:
  begin//State- Give address to register file
@@ -115,10 +115,10 @@ always @(posedge clk)begin//always
    rs1_reg <= source_1_address; //Give source address 1 (as given by instruction decode controller) to register file for reading 1st operand 
    rs2_reg <= source_2_address; //Give source address 2 (as given by instruction decode controller) to register file for reading 2nd operand 
    rd_reg <= destination_address; //Give destination address to register file (as given by instruction decode controller) for writing resultant sum output
-   state <= latch_inputs; //Go to next state of latching inputs
+   add_cnt_state <= latch_inputs; //Go to next state of latching inputs
    end
    else begin
-   state <= give_address_to_register_file; //If not start given by instruction decode controller, wait in the same state
+   add_cnt_state <= give_address_to_register_file; //If not start given by instruction decode controller, wait in the same state
    write_enable_temp <= 0;//No writing to register file in this stage because output sum is yet not ready, If it is on then wrong value will be written to Register File.
    busy_temp <= 0; //Make busy signal low
    end
@@ -128,7 +128,7 @@ always @(posedge clk)begin//always
  latch_inputs:
  begin//// Latch inputs
  source_1_temp <= source_1_value; // Latch value of source_1 operand as given by address rs1 by register file
- state <= start_adder;//Go to next state of starting the adder
+ add_cnt_state <= start_adder;//Go to next state of starting the adder
  case(operation_type)// For selecting source_2 operand either take either register value as given by rs2 address by register file or 
  //take immediate value based on operation_type flag (R or I)
  R:
@@ -153,7 +153,7 @@ always @(posedge clk)begin//always
  //i.e., if this condition matches we know adder has accepted given inputs to it
  output_STB_to_adder <= 0;//After transaction occurs no more valid input is there, so make input STB to adder = 0
  BUSY_to_adder <= 0; //Give input BUSY to adder as 0 so that adder gets to know that it's receiver i.e., controller is not busy
- state <= wait_for_adder_complete;//Go to next state of waiting for adder operation completion
+ add_cnt_state <= wait_for_adder_complete;//Go to next state of waiting for adder operation completion
  end//
  end////
  
@@ -167,7 +167,7 @@ always @(posedge clk)begin//always
  //In this case it is output transaction of adder to controller
  BUSY_to_adder <= 1; //We turn the input BUSY to adder by controller/Receiver as 1 indicating that controller is now BUSY 
  destination_reg <= output_sum;//We latch the output sum as given by adder 
- state <= write_back_to_register;//Go to next state of writing result to register file
+ add_cnt_state <= write_back_to_register;//Go to next state of writing result to register file
  end///
  end////
  
@@ -178,7 +178,7 @@ always @(posedge clk)begin//always
  destination_temp <= destination_reg;// Output Value to be written to register file 
  rd_temp <= rd_reg;// Give destination address to register file
  write_enable_temp <= 1;// Turn write enable on for writing value to register file
- state <= wait_one_cycle;//Go to next state of waiting one cycle. 
+ add_cnt_state <= wait_one_cycle;//Go to next state of waiting one cycle. 
  //Why wait one cycle? because once you give write_enable write will not take place immediately because it is sampled by register file on positive edge of clock.
  end////
  
@@ -186,7 +186,7 @@ always @(posedge clk)begin//always
  
  wait_one_cycle:
  begin////Wait one cycle for write to register file to get completed
- state <= increment_pc_and_update_status;//Go to next state of incrementing PC value and updating status signals for instruction decode controller
+ add_cnt_state <= increment_pc_and_update_status;//Go to next state of incrementing PC value and updating status signals for instruction decode controller
  end////
  
  
@@ -196,7 +196,7 @@ always @(posedge clk)begin//always
    pc_new_temp <= pc_new_reg + 1;//It's not a jump operation so PC value will be PC+1
    busy_temp <= 0; //Controller no more busy
    done_temp <= 1; //Controller has completed it's operation
-   state <= give_address_to_register_file;//Go back to initial stage
+   add_cnt_state <= give_address_to_register_file;//Go back to initial stage
  end
    
  endcase
@@ -214,7 +214,7 @@ always @(posedge clk)begin//always
  done_temp <= 0; //Initialise status signal done to 0
  output_STB_to_adder <= 0; //Give input STB to adder as 0 because no inputs are ready/valid, they are in don't care states
  write_enable_temp <= 0;//Make sure no writing to register file happens
- state <= give_address_to_register_file; //Go to initial state and wait for start by instruction decode controller 
+ add_cnt_state <= give_address_to_register_file; //Go to initial state and wait for start by instruction decode controller 
  end//
  end///always
  
