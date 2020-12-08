@@ -69,19 +69,19 @@ Instruction 2 is loaded in PC[1]-
 ```diff
 At rst , we see from waveform, program counter value is 0, i.e., it is fetching first instruction and executing it 
 
-- CPU excersises state 0 and 2 and goes to state 1 (indicated by "cpu_state[1:0]") and wait for "fetch_stage_enable" poll register to become 1.
++ CPU excersises state 0 and 2 and goes to state 1 (indicated by "cpu_state[1:0]") and wait for "fetch_stage_enable" poll register to become 1.
 
 We also see that top level controller i.e., instruction decode controller is started (see the signal "start_top_controller").
 
-- For the first instruction instruction decode controller excercises states 0, 1 and 2.(indicated by second "top_cnt_state[1:0]" in waveform). 
++ For the first instruction instruction decode controller excercises states 0, 1 and 2.(indicated by second "top_cnt_state[1:0]" in waveform). 
 
 In the 1 state top controller in turn starts the addition_operation sub_controller.
 
-- The addition operation subcontroller excercises states 0,1,2,3,4,5,6 (indicated by "add_cnt_state[3:0]" in waveform).
++ The addition operation subcontroller excercises states 0,1,2,3,4,5,6 (indicated by "add_cnt_state[3:0]" in waveform).
 
 In the state 2 addition operation subcontroller inturn starts the fpu_adder by giving it proper input strobes and data and making "output_module_busy" = 0 (i.e., output module is always ready to accept adder output)
 
-- Fpu_adder excercises states 0,1,2,3,4,5,6,7,8,9,10(hex-a) {indicated by "adder_state[3:0]"} depending upon nature of inputs a & b, and after that output is latched/taken by addition operation controller by checking output strobe and input busy signal.
++ Fpu_adder excercises states 0,1,2,3,4,5,6,7,8,9,10(hex-a) {indicated by "adder_state[3:0]"} depending upon nature of inputs a & b, and after that output is latched/taken by addition operation controller by checking output strobe and input busy signal.
 
 We see the inputs to the adder (indicated by a and b) are 2 and 3 respectively for first instruction and output sum (indicated by output_sum) is 5.
 
@@ -101,19 +101,19 @@ After all stages of the CPU gets completed, we notice that "fetch_stage_enable" 
 ```diff
 We notice that rst has now gone low and next instruction is to be executed. Program counter value is incremented to 1.
 
-- CPU enters state 2 and then 1 (indicated by "cpu_state[1:0]") and again waits for "fetch_stage_enable" poll register to become 1.
++ CPU enters state 2 and then 1 (indicated by "cpu_state[1:0]") and again waits for "fetch_stage_enable" poll register to become 1.
 
 We also see that top level controller i.e., instruction decode controller is started (see the signal "start_top_controller").
 
-- For the second instruction, instruction decode controller excercises states 0, 1 and 2.(indicated by "top_cnt_state[1:0]" in waveform). 
++ For the second instruction, instruction decode controller excercises states 0, 1 and 2.(indicated by "top_cnt_state[1:0]" in waveform). 
 
 In the 1 state top controller in turn starts the addition_operation sub_controller.
 
-- The addition operation subcontroller excercises states 0,1,2,3,4,5,6 (indicated by "add_cnt_state[3:0]" in waveform).
++ The addition operation subcontroller excercises states 0,1,2,3,4,5,6 (indicated by "add_cnt_state[3:0]" in waveform).
 
 In the state 2 addition operation subcontroller inturn starts the fpu_adder by giving it proper input strobes and data and making "output_module_busy" = 0 (i.e., output module is always ready to accept adder output)
 
-- Fpu_adder excercises states 0,1,2,10(hex-a) {indicated by "adder_state[3:0]"} depending upon nature of inputs a & b, and after that output is latched/taken by addition operation controller by checking output strobe and input busy signal.
++ Fpu_adder excercises states 0,1,2,10(hex-a) {indicated by "adder_state[3:0]"} depending upon nature of inputs a & b, and after that output is latched/taken by addition operation controller by checking output strobe and input busy signal.
 
 Since the inputs a and b are not denormalised numbers , so fpu_adder excercises smaller number of states thus not wasting idle clock cycles and efficiently managing power.
 
