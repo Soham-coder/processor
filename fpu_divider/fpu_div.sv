@@ -80,7 +80,7 @@ module divider(
   reg       [31:0] output_div_reg;
   reg       div_BUSY_reg;
 
-  reg       [3:0] state;
+  reg       [3:0] div_state;
   parameter get_a_and_b   = 4'd0,
             unpack        = 4'd1,
             special_cases = 4'd2,
@@ -107,7 +107,7 @@ module divider(
   always @(posedge clk)
   begin
 
-    case(state)
+    case(div_state)
 
 
       get_a_and_b: //Initial state wait for valid inputs and make BUSY = 0 because it has finished previous operation 
@@ -117,7 +117,7 @@ module divider(
           a <= input_a;
           b <= input_b;
           div_BUSY_reg <= 1; //Turn the BUSY signal on, BUSY = 1 because now it will be busy processing latched inputs and can no more take inputs even if it is valid. 
-          state <= unpack;
+          div_state <= unpack;
         end
       end
 
@@ -130,7 +130,7 @@ module divider(
         b_e <= b[30 : 23] - 127;
         a_s <= a[31];
         b_s <= b[31];
-        state <= special_cases;
+        div_state <= special_cases;
       end
 
       special_cases:
@@ -141,54 +141,54 @@ module divider(
           z[30:23] <= 255;
           z[22] <= 1;
           z[21:0] <= 0;
-          state <= put_z;
+          div_state <= put_z;
           //if a is inf and b is inf return NaN 
         end else if ((a_e == 128) && (b_e == 128)) begin
           z[31] <= 1;
           z[30:23] <= 255;
           z[22] <= 1;
           z[21:0] <= 0;
-          state <= put_z;
+          div_state <= put_z;
         //if a is inf return inf
         end else if (a_e == 128) begin
           z[31] <= a_s ^ b_s;
           z[30:23] <= 255;
           z[22:0] <= 0;
-          state <= put_z;
+          div_state <= put_z;
            //if b is zero return NaN
           if ($signed(b_e == -127) && (b_m == 0)) begin
             z[31] <= 1;
             z[30:23] <= 255;
             z[22] <= 1;
             z[21:0] <= 0;
-            state <= put_z;
+            div_state <= put_z;
           end
         //if b is inf return zero
         end else if (b_e == 128) begin
           z[31] <= a_s ^ b_s;
           z[30:23] <= 0;
           z[22:0] <= 0;
-          state <= put_z;
+          div_state <= put_z;
         //if a is zero return zero
         end else if (($signed(a_e) == -127) && (a_m == 0)) begin
           z[31] <= a_s ^ b_s;
           z[30:23] <= 0;
           z[22:0] <= 0;
-          state <= put_z;
+          div_state <= put_z;
            //if b is zero return NaN
           if (($signed(b_e) == -127) && (b_m == 0)) begin
             z[31] <= 1;
             z[30:23] <= 255;
             z[22] <= 1;
             z[21:0] <= 0;
-            state <= put_z;
+            div_state <= put_z;
           end
         //if b is zero return inf
         end else if (($signed(b_e) == -127) && (b_m == 0)) begin
           z[31] <= a_s ^ b_s;
           z[30:23] <= 255;
           z[22:0] <= 0;
-          state <= put_z;
+          div_state <= put_z;
         end else begin
           //Denormalised Number
           if ($signed(a_e) == -127) begin
@@ -202,14 +202,14 @@ module divider(
           end else begin
             b_m[23] <= 1;
           end
-          state <= normalise_a;
+          div_state <= normalise_a;
         end
       end
 
       normalise_a:
       begin
         if (a_m[23]) begin
-          state <= normalise_b;
+          div_state <= normalise_b;
         end else begin
           a_m <= a_m << 1;
           a_e <= a_e - 1;
@@ -219,7 +219,7 @@ module divider(
       normalise_b:
       begin
         if (b_m[23]) begin
-          state <= divide_0;
+          div_state <= divide_0;
         end else begin
           b_m <= b_m << 1;
           b_e <= b_e - 1;
@@ -235,7 +235,7 @@ module divider(
         count <= 0;
         dividend <= a_m << 27;
         divisor <= b_m;
-        state <= divide_1;
+        div_state <= divide_1;
       end
 
       divide_1:
@@ -244,7 +244,7 @@ module divider(
         remainder <= remainder << 1;
         remainder[0] <= dividend[50];
         dividend <= dividend << 1;
-        state <= divide_2;
+        div_state <= divide_2;
       end
 
       divide_2:
@@ -254,10 +254,10 @@ module divider(
           remainder <= remainder - divisor;
         end
         if (count == 49) begin
-          state <= divide_3;
+          div_state <= divide_3;
         end else begin
           count <= count + 1;
-          state <= divide_1;
+          div_state <= divide_1;
         end
       end
 
@@ -267,7 +267,7 @@ module divider(
         guard <= quotient[2];
         round_bit <= quotient[1];
         sticky <= quotient[0] | (remainder != 0);
-        state <= normalise_1;
+        div_state <= normalise_1;
       end
 
       normalise_1:
@@ -279,7 +279,7 @@ module divider(
           guard <= round_bit;
           round_bit <= 0;
         end else begin
-          state <= normalise_2;
+          div_state <= normalise_2;
         end
       end
 
@@ -292,7 +292,7 @@ module divider(
           round_bit <= guard;
           sticky <= sticky | round_bit;
         end else begin
-          state <= round;
+          div_state <= round;
         end
       end
 
@@ -304,7 +304,7 @@ module divider(
             z_e <=z_e + 1;
           end
         end
-        state <= pack;
+        div_state <= pack;
       end
 
       pack:
@@ -321,7 +321,7 @@ module divider(
           z[30 : 23] <= 255;
           z[31] <= z_s;
         end
-        state <= put_z;
+        div_state <= put_z;
       end
       
       put_z: //Final state valid output is ready , make the output STB/VALID = 1, put valid output.
@@ -330,14 +330,14 @@ module divider(
         output_div_reg <= z;
         if (div_output_STB_reg && !(output_module_BUSY)) begin //Once output module is no more BUSY it lowers it's busy signal and output is then taken by next module.
           div_output_STB_reg <= 0; //Output is no more valid.
-          state <= get_a_and_b; //Go back to initial state.
+          div_state <= get_a_and_b; //Go back to initial state.
         end
       end
 
     endcase
     
     if (rst == 1) begin //At Active high reset, module is no more BUSY, go to initial state and wait for valid inputs. Input is don't care and output is don't care , so output VALID/STB = 0.
-      state <= get_a_and_b;
+      div_state <= get_a_and_b;
       div_BUSY_reg <= 0; 
       div_output_STB_reg <= 0;
     end
@@ -346,24 +346,24 @@ module divider(
 
    
    `ifdef SYNTHESIS_OFF //Purely combinational logic for debugging purpose, based on hexadecimal encoded states it will show named states in waveform 
-   //see this register "statename" in ASCII in dump
-  reg [8*13:0] statename;//Highest 13 Number of ASCII letters each 8 bits.
+   //see this register "div_statename" in ASCII in dump
+  reg [8*13:0] div_statename;//Highest 13 Number of ASCII letters each 8 bits.
   always@* begin
     case (1'b1)
-      (state === get_a_and_b)  : statename = "GET_A_AND_B";
-      (state === unpack)       : statename = "UNPACK";
-      (state === special_cases): statename = "SPECIAL_CASES";//13 ASCII letters
-      (state === normalise_a)  : statename = "NORMALISE_A";
-      (state === normalise_b)  : statename = "NORMALISE_B";
-      (state === divide_0)     : statename = "DIVIDE_0";
-      (state === divide_1)     : statename = "DIVIDE_1";
-      (state === divide_2)     : statename = "DIVIDE_2";
-      (state === divide_3)     : statename = "DIVIDE_3";
-      (state === normalise_1)  : statename = "NORMALIZE_1";
-      (state === normalise_2)  : statename = "NORMALIZE_2";
-      (state === round)        : statename = "ROUND";
-      (state === pack)         : statename = "PACK";
-      (state === put_z)        : statename = "PUT_Z";
+      (div_state === get_a_and_b)  : div_statename = "GET_A_AND_B";
+      (div_state === unpack)       : div_statename = "UNPACK";
+      (div_state === special_cases): div_statename = "SPECIAL_CASES";//13 ASCII letters
+      (div_state === normalise_a)  : div_statename = "NORMALISE_A";
+      (div_state === normalise_b)  : div_statename = "NORMALISE_B";
+      (div_state === divide_0)     : div_statename = "DIVIDE_0";
+      (div_state === divide_1)     : div_statename = "DIVIDE_1";
+      (div_state === divide_2)     : div_statename = "DIVIDE_2";
+      (div_state === divide_3)     : div_statename = "DIVIDE_3";
+      (div_state === normalise_1)  : div_statename = "NORMALIZE_1";
+      (div_state === normalise_2)  : div_statename = "NORMALIZE_2";
+      (div_state === round)        : div_statename = "ROUND";
+      (div_state === pack)         : div_statename = "PACK";
+      (div_state === put_z)        : div_statename = "PUT_Z";
     endcase
   end//always
   `endif

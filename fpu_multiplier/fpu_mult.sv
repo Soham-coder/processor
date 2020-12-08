@@ -77,7 +77,7 @@ module multiplier(
   reg       [31:0] output_mult_reg;
   reg       mult_BUSY_reg;
 
-  reg       [3:0] state;
+  reg       [3:0] mult_state;
   parameter get_a_and_b   = 4'd0,
             unpack        = 4'd1,
             special_cases = 4'd2,
@@ -101,7 +101,7 @@ module multiplier(
   always @(posedge clk)
   begin
 
-    case(state)
+    case(mult_state)
 
 	  
 	  get_a_and_b: //Initial state wait for valid inputs and make BUSY = 0 because it has finished previous operation 
@@ -111,7 +111,7 @@ module multiplier(
           a <= input_a;
 		  b <= input_b;
           mult_BUSY_reg <= 1; //Turn the BUSY signal on, BUSY = 1 because now it will be busy processing latched inputs and can no more take inputs even if it is valid. 
-          state <= unpack;
+          mult_state <= unpack;
         end
       end
 
@@ -123,7 +123,7 @@ module multiplier(
         b_e <= b[30 : 23] - 127;
         a_s <= a[31];
         b_s <= b[31];
-        state <= special_cases;
+        mult_state <= special_cases;
       end
 
       special_cases:
@@ -134,7 +134,7 @@ module multiplier(
           z[30:23] <= 255;
           z[22] <= 1;
           z[21:0] <= 0;
-          state <= put_z;
+          mult_state <= put_z;
         //if a is inf return inf
         end else if (a_e == 128) begin
           z[31] <= a_s ^ b_s;
@@ -147,7 +147,7 @@ module multiplier(
             z[22] <= 1;
             z[21:0] <= 0;
           end
-          state <= put_z;
+          mult_state <= put_z;
         //if b is inf return inf
         end else if (b_e == 128) begin
           z[31] <= a_s ^ b_s;
@@ -160,19 +160,19 @@ module multiplier(
             z[22] <= 1;
             z[21:0] <= 0;
           end
-          state <= put_z;
+          mult_state <= put_z;
         //if a is zero return zero
         end else if (($signed(a_e) == -127) && (a_m == 0)) begin
           z[31] <= a_s ^ b_s;
           z[30:23] <= 0;
           z[22:0] <= 0;
-          state <= put_z;
+          mult_state <= put_z;
         //if b is zero return zero
         end else if (($signed(b_e) == -127) && (b_m == 0)) begin
           z[31] <= a_s ^ b_s;
           z[30:23] <= 0;
           z[22:0] <= 0;
-          state <= put_z;
+          mult_state <= put_z;
         end else begin
           //Denormalised Number
           if ($signed(a_e) == -127) begin
@@ -186,14 +186,14 @@ module multiplier(
           end else begin
             b_m[23] <= 1;
           end
-          state <= normalise_a;
+          mult_state <= normalise_a;
         end
       end
 
       normalise_a:
       begin
         if (a_m[23]) begin
-          state <= normalise_b;
+          mult_state <= normalise_b;
         end else begin
           a_m <= a_m << 1;
           a_e <= a_e - 1;
@@ -203,7 +203,7 @@ module multiplier(
       normalise_b:
       begin
         if (b_m[23]) begin
-          state <= multiply_0;
+          mult_state <= multiply_0;
         end else begin
           b_m <= b_m << 1;
           b_e <= b_e - 1;
@@ -215,7 +215,7 @@ module multiplier(
         z_s <= a_s ^ b_s;
         z_e <= a_e + b_e + 1;
         product <= a_m * b_m * 4;
-        state <= multiply_1;
+        mult_state <= multiply_1;
       end
 
       multiply_1:
@@ -224,7 +224,7 @@ module multiplier(
         guard <= product[25];
         round_bit <= product[24];
         sticky <= (product[23:0] != 0);
-        state <= normalise_1;
+        mult_state <= normalise_1;
       end
 
       normalise_1:
@@ -236,7 +236,7 @@ module multiplier(
           guard <= round_bit;
           round_bit <= 0;
         end else begin
-          state <= normalise_2;
+          mult_state <= normalise_2;
         end
       end
 
@@ -249,7 +249,7 @@ module multiplier(
           round_bit <= guard;
           sticky <= sticky | round_bit;
         end else begin
-          state <= round;
+          mult_state <= round;
         end
       end
 
@@ -261,7 +261,7 @@ module multiplier(
             z_e <=z_e + 1;
           end
         end
-        state <= pack;
+        mult_state <= pack;
       end
 
       pack:
@@ -278,7 +278,7 @@ module multiplier(
           z[30 : 23] <= 255;
           z[31] <= z_s;
         end
-        state <= put_z;
+        mult_state <= put_z;
       end
 	  
 	  put_z: //Final state valid output is ready , make the output STB/VALID = 1, put valid output.
@@ -287,7 +287,7 @@ module multiplier(
         output_mult_reg <= z;
         if (mult_output_STB_reg && !(output_module_BUSY)) begin //Once output module is no more BUSY it lowers it's busy signal and output is then taken by next module.
           mult_output_STB_reg <= 0; //Output is no more valid.
-          state <= get_a_and_b; //Go back to initial state.
+          mult_state <= get_a_and_b; //Go back to initial state.
         end
       end
 
@@ -295,7 +295,7 @@ module multiplier(
 
 	
 	 if (rst == 1) begin //At Active high reset, module is no more BUSY, go to initial state and wait for valid inputs. Input is don't care and output is don't care , so output VALID/STB = 0.
-      state <= get_a_and_b;
+      mult_state <= get_a_and_b;
       mult_BUSY_reg <= 0; 
       mult_output_STB_reg <= 0;
     end
@@ -305,21 +305,21 @@ module multiplier(
   
    `ifdef SYNTHESIS_OFF //Purely combinational logic for debugging purpose, based on hexadecimal encoded states it will show named states in waveform 
    //see this register "statename" in ASCII in dump
-  reg [8*13:0] statename;//Highest 13 Number of ASCII letters each 8 bits.
+  reg [8*13:0] mult_statename;//Highest 13 Number of ASCII letters each 8 bits.
   always@* begin
     case (1'b1)
-      (state === get_a_and_b)  : statename = "GET_A_AND_B";
-      (state === unpack)       : statename = "UNPACK";
-      (state === special_cases): statename = "SPECIAL_CASES";//13 ASCII letters
-      (state === normalise_a)  : statename = "NORMALISE_A";
-      (state === normalise_b)  : statename = "NORMALISE_B";
-      (state === multiply_0)   : statename = "MULTIPLY_0";
-      (state === multiply_1)   : statename = "MULTIPLY_1";
-      (state === normalise_1)  : statename = "NORMALIZE_1";
-      (state === normalise_2)  : statename = "NORMALIZE_2";
-      (state === round)        : statename = "ROUND";
-      (state === pack)         : statename = "PACK";
-	  (state === put_z)        : statename = "PUT_Z";
+      (mult_state === get_a_and_b)  : mult_statename = "GET_A_AND_B";
+      (mult_state === unpack)       : mult_statename = "UNPACK";
+      (mult_state === special_cases): mult_statename = "SPECIAL_CASES";//13 ASCII letters
+      (mult_state === normalise_a)  : mult_statename = "NORMALISE_A";
+      (mult_state === normalise_b)  : mult_statename = "NORMALISE_B";
+      (mult_state === multiply_0)   : mult_statename = "MULTIPLY_0";
+      (mult_state === multiply_1)   : mult_statename = "MULTIPLY_1";
+      (mult_state === normalise_1)  : mult_statename = "NORMALIZE_1";
+      (mult_state === normalise_2)  : mult_statename = "NORMALIZE_2";
+      (mult_state === round)        : mult_statename = "ROUND";
+      (mult_state === pack)         : mult_statename = "PACK";
+      (mult_state === put_z)        : mult_statename = "PUT_Z";
     endcase
   end//always
   `endif
