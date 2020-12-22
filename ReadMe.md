@@ -151,4 +151,4 @@ So nothing happens and PC gets stuck to 2.
 - [Dan Gisselquist](https://zipcpu.com/blog/2017/08/14/strategies-for-pipelining.html)
 - [Verification Gentleman](https://blog.verificationgentleman.com/)
 	- [Github example code](https://github.com/verification-gentleman-blog)
-- [Floating point units](https://github.com/dawsonjon/fpu)
+- [Floating point units by Jonathan P Dawson](https://github.com/dawsonjon/fpu)
