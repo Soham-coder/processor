@@ -145,3 +145,10 @@ So nothing happens and PC gets stuck to 2.
 ```diff
 ! EDA Playground link to see hands on- https://www.edaplayground.com/x/Tc64 
 ```
+
+# Guides & Blogs:
+
+- [Dan Gisselquist](https://zipcpu.com/blog/2017/08/14/strategies-for-pipelining.html)
+- [Verification Gentleman](https://blog.verificationgentleman.com/)
+	- [Github example code](https://github.com/verification-gentleman-blog)
+- [Floating point units](https://github.com/dawsonjon/fpu)
