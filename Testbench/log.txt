@@ -1,6 +1,8 @@
+# vsim -voptargs=+acc=npr
+# run -all
 # program counter -  0 | Register destination address -  3 | Destination value - 40a00000
 # program counter -  1 | Register destination address -  3 | Destination value - 40000000
-# ** Note: $finish    : testbench.sv(71)
-#    Time: 200 ns  Iteration: 0  Instance: /tb
-# End time: 01:55:42 on Dec 08,2020, Elapsed time: 0:00:01
-# Errors: 0, Warnings: 0
+# program counter -  2 | Register destination address -  3 | Destination value - 40c00000
+# program counter -  3 | Register destination address -  3 | Destination value - 00000000
+# ** Note: $finish    : testbench.sv(110)
+#    Time: 800 ns  Iteration: 0  Instance: /tb
