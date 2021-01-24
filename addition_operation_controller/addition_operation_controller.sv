@@ -22,7 +22,7 @@
   source_2_value, 
   destination_value, 
   write_enable
-  );
+ );
 
  input clk;//clock
  input rst;//reset
