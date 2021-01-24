@@ -193,10 +193,10 @@ always @(posedge clk)begin//always
  
       increment_pc_and_update_status:
       begin//// Increment PC value and update status signals for instruction decode controller
-      pc_new_temp <= pc_new_reg + 1;//It's not a jump operation so PC value will be PC+1
-      busy_temp <= 0; //Controller no more busy
-      done_temp <= 1; //Controller has completed it's operation
-      add_cnt_state <= give_address_to_register_file;//Go back to initial stage
+       pc_new_temp <= pc_new_reg + 1;//It's not a jump operation so PC value will be PC+1
+       busy_temp <= 0; //Controller no more busy
+       done_temp <= 1; //Controller has completed it's operation
+       add_cnt_state <= give_address_to_register_file;//Go back to initial stage
       end
    
  endcase
