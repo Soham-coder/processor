@@ -175,10 +175,10 @@ always @(posedge clk)begin//always
 
       write_back_to_register:
       begin//// Write resultant value to register file
-      destination_temp <= destination_reg;// Output Value to be written to register file 
-      rd_temp <= rd_reg;// Give destination address to register file
-      write_enable_temp <= 1;// Turn write enable on for writing value to register file
-      add_cnt_state <= wait_one_cycle;//Go to next state of waiting one cycle. 
+       destination_temp <= destination_reg;// Output Value to be written to register file 
+       rd_temp <= rd_reg;// Give destination address to register file
+       write_enable_temp <= 1;// Turn write enable on for writing value to register file
+       add_cnt_state <= wait_one_cycle;//Go to next state of waiting one cycle. 
       //Why wait one cycle? because once you give write_enable write will not take place immediately because it is sampled by register file on positive edge of clock.
       end////
  
@@ -186,7 +186,7 @@ always @(posedge clk)begin//always
  
       wait_one_cycle:
       begin////Wait one cycle for write to register file to get completed
-      add_cnt_state <= increment_pc_and_update_status;//Go to next state of incrementing PC value and updating status signals for instruction decode controller
+       add_cnt_state <= increment_pc_and_update_status;//Go to next state of incrementing PC value and updating status signals for instruction decode controller
       end////
  
  
