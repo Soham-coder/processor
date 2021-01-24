@@ -209,7 +209,7 @@ always @(posedge clk)begin//always
  
  
 always@(posedge clk)begin///
-  if (rst) begin// In case of reset initialise these values to 0 and make rest all values are automatically don't care
+ if (rst) begin// In case of reset initialise these values to 0 and make rest all values are automatically don't care
   busy_temp <= 0; //Initialise status signal busy to 0
   done_temp <= 0; //Initialise status signal done to 0
   output_STB_to_adder <= 0; //Give input STB to adder as 0 because no inputs are ready/valid, they are in don't care states
