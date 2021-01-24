@@ -264,9 +264,7 @@ module instruction_decode_controller
 
   //Source3 Value MUX instance
   source_3_value_mux source_3_val_mux_inst 
-  (
-   .source3_add_cont(source3_add_cont), 
-   .source3_mult_cont(source3_mult_cont), 
+  ( 
    .source3_muladd_cont(source3_muladd_cont), 
    .source3_sel(source3_sel), 
    .source_3_value(source_3_value)
