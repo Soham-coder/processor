@@ -53,7 +53,7 @@ module divider(
         input_a,
         input_b,
         div_input_STB,
-	    div_BUSY,
+	      div_BUSY,
         clk,
         rst,
         output_div,

@@ -52,14 +52,14 @@
 module adder(
         input_a,
         input_b,
-		adder_input_STB,
-		adder_BUSY,
+		    adder_input_STB,
+		    adder_BUSY,
         clk,
         rst,
-		output_sum,
+		    output_sum,
         adder_output_STB,
         output_module_BUSY
-		);
+		        );
 
   input     clk;
   input     rst;
@@ -113,7 +113,7 @@ module adder(
         adder_BUSY_reg <= 0;
         if (!(adder_BUSY_reg) && adder_input_STB) begin  //Once it gets valid input take that input and start processing.
           a <= input_a;
-		  b <= input_b;
+		      b <= input_b;
           adder_BUSY_reg <= 1; //Turn the BUSY signal on, BUSY = 1 because now it will be busy processing latched inputs and can no more take inputs even if it is valid. 
           adder_state <= unpack;
         end

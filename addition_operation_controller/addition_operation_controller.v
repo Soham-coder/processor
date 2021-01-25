@@ -1,5 +1,6 @@
 
- `include "../fpu_adder/fpu_add.sv" //It's the same as full code of fpu_add coming and sitting in this place
+ `include "../defines.vh"
+ `include "../fpu_adder/fpu_add.v" //It's the same as full code of fpu_add coming and sitting in this place
 
  module add_controller //Does add_register or add_immediate operations 
  (
@@ -23,30 +24,37 @@
   destination_value, 
   write_enable
  );
-
+ 
+ localparam  OPERATION_TYPE_WIDTH = `OPERATION_TYPE_WIDTH;
+ localparam  NUMBER_OF_PC_REGISTERS = `NUMBER_OF_PC_REGISTERS;
+ localparam  PC_WIDTH = $clog2(NUMBER_OF_PC_REGISTERS);
+ localparam  WORD_SIZE = `WORD_SIZE;
+ localparam  NUMBER_OF_REGISTERS = `NUMBER_OF_REGISTERS;
+ localparam  ADDR_WIDTH = $clog2(NUMBER_OF_REGISTERS);
+ 
  input clk;//clock
  input rst;//reset
  input start;//operation start signal given by instruction decode controller
 
- input [1:0] operation_type; //R or I type  e.g.,  ADD Rd, Rs1, Rs2 (R-Type)  |  ADDI Rd, Rs1, immediate_value (I-Type) 
- input[4:0] pc; //Current program counter value given by instruction_decode controller   
+ input [OPERATION_TYPE_WIDTH - 1:0] operation_type; //R or I type  e.g.,  ADD Rd, Rs1, Rs2 (R-Type)  |  ADDI Rd, Rs1, immediate_value (I-Type) 
+ input [PC_WIDTH - 1:0] pc; //Current program counter value given by instruction_decode controller   
 
- output[4:0] next_pc; //Next program counter value given by instruction decode controller
+ output [PC_WIDTH - 1:0] next_pc; //Next program counter value given by instruction decode controller
  output busy; //Indicates that operation of this controller is still going on
  output done; //Indicates that operation of this controller is complete
 
- input [4:0] source_1_address; //Rs1- source address 1 , This controller will go to this address of register file and fetch operand_1
- input [4:0] source_2_address; //Rs2- source address 2, This controller will go to this address of register file and fetch operand_2 
- input [4:0] destination_address; //Rd destination address, This controller will go to this address of register file and write the resultant value
+ input [ADDR_WIDTH - 1:0] source_1_address; //Rs1- source address 1 , This controller will go to this address of register file and fetch operand_1
+ input [ADDR_WIDTH - 1:0] source_2_address; //Rs2- source address 2, This controller will go to this address of register file and fetch operand_2 
+ input [ADDR_WIDTH - 1:0] destination_address; //Rd destination address, This controller will go to this address of register file and write the resultant value
  //(i.e., sum output obtained by FPU adder)
 
- output [4:0] rs1, rs2, rd; //This is the output address to be given to register file for reading operands and writing result
+ output [ADDR_WIDTH -1:0] rs1, rs2, rd; //This is the output address to be given to register file for reading operands and writing result
 
- input [31:0] source_immediate_value;//Immediate value given by instruction decode controller in case of immediate operation to be done
- input [31:0] source_1_value;//Value of 1st operand that will be given by register file
- input [31:0] source_2_value;//Value of 2nd operand that will be given by register file
+ input [WORD_SIZE - 1:0] source_immediate_value;//Immediate value given by instruction decode controller in case of immediate operation to be done
+ input [WORD_SIZE - 1:0] source_1_value;//Value of 1st operand that will be given by register file
+ input [WORD_SIZE - 1:0] source_2_value;//Value of 2nd operand that will be given by register file
 
- output [31:0] destination_value;//Resultant value(i.e., sum output obtained from FPU adder) that will be written to register file
+ output [WORD_SIZE - 1:0] destination_value;//Resultant value(i.e., sum output obtained from FPU adder) that will be written to register file
  output write_enable;//Write enable output signal given by this controller to register file in case of write
 
  //Internal registers
@@ -54,13 +62,13 @@
  reg adder_is_BUSY; //Output BUSY status of adder indicating that it is busy
  reg input_STB_to_controller; //STB given by adder to controller indicating valid add result
  reg BUSY_to_adder; //Indicating whether controller is busy i.e., if it can take valid result of adder or not at this moment or not
- reg [31:0] output_sum; //Output sum as obtained by FPU adder 
- reg [31:0] destination_reg, destination_temp; //Immediate variables
+ reg [WORD_SIZE - 1:0] output_sum; //Output sum as obtained by FPU adder 
+ reg [WORD_SIZE - 1:0] destination_reg, destination_temp; //Immediate variables
  reg busy_temp, done_temp; //Immediate variables
- reg [31:0] source_1_reg, source_2_reg, source_1_temp, source_2_temp ; //Immediate variables
- reg [4:0] pc_new_reg, pc_new_temp;//Immediate variables
- reg [4:0] rs1_reg, rs2_reg , rd_temp; //Immediate variables
- reg [4:0] rd_reg;//Immediate variables
+ reg [WORD_SIZE - 1:0] source_1_reg, source_2_reg, source_1_temp, source_2_temp ; //Immediate variables
+ reg [ADDR_WIDTH - 1:0] pc_new_reg, pc_new_temp;//Immediate variables
+ reg [ADDR_WIDTH - 1:0] rs1_reg, rs2_reg , rd_temp; //Immediate variables
+ reg [ADDR_WIDTH - 1:0] rd_reg;//Immediate variables
  reg write_enable_temp;//Immediate variable
 
 
@@ -97,8 +105,8 @@ reg [3:0] add_cnt_state;//State variable to store current state
            start_adder=3'd2,
            wait_for_adder_complete=3'd3,
            write_back_to_register=3'd4,
-           wait_one_cycle=3'd5,
-           increment_pc_and_update_status=3'd6;
+           //wait_one_cycle=3'd5,
+           increment_pc_and_update_status=3'd5;
 
 always @(posedge clk)begin//always
  
@@ -178,16 +186,18 @@ always @(posedge clk)begin//always
        destination_temp <= destination_reg;// Output Value to be written to register file 
        rd_temp <= rd_reg;// Give destination address to register file
        write_enable_temp <= 1;// Turn write enable on for writing value to register file
-       add_cnt_state <= wait_one_cycle;//Go to next state of waiting one cycle. 
+       add_cnt_state <= increment_pc_and_update_status;//Go to next state of waiting one cycle. 
       //Why wait one cycle? because once you give write_enable write will not take place immediately because it is sampled by register file on positive edge of clock.
       end////
  
  
  
-      wait_one_cycle:
-      begin////Wait one cycle for write to register file to get completed
-       add_cnt_state <= increment_pc_and_update_status;//Go to next state of incrementing PC value and updating status signals for instruction decode controller
-      end////
+      /*
+      *wait_one_cycle:
+      *begin////Wait one cycle for write to register file to get completed
+      *add_cnt_state <= increment_pc_and_update_status;//Go to next state of incrementing PC value and updating status signals for instruction decode controller
+      *end
+      */
  
  
  

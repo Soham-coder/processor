@@ -16,9 +16,9 @@ ___Block Diagram___
 
 
 
-___Specification___
+##### ___Specification___
 
-
+```diff prompt
 1. A transaction takes place any time the input STB line (div_input_STB) is true and the output BUSY line (div_BUSY) is false.
 2. Divider needs to be careful not to ever lower the output BUSY line (div_BUSY), unless it is ready to receive data.
 3. The input STB (div_input_STB) line should be raised any time input data is ready for sending. The data source must not wait for divider BUSY (div_BUSY) to be false before raising the input STB line (div_input_STB).
@@ -26,7 +26,7 @@ ___Specification___
 5. Once input STB (div_input_STB) is raised, the data being transferred cannot be changed until the clock after the transaction takes place.
 6. The Data lines (output_div) hold the previous valid output any time output STB (div_output_STB) is false.
 7. At Reset output div_BUSY=0, output div_output_STB=0, and output data lines will be in don't care.
-
+```
 
 
 __Data Flow FSM__
@@ -46,8 +46,9 @@ __Waveform__
 
 
 
-Waveform description:
+##### Waveform description:
 
+```diff prompt
 1. At reset(rst), output signal div_BUSY=0, output signal div_output_STB=0, and output data lines(output div) will be in don't care. Note that it gets the value at positive edge of clock so it is a little later.
 
 2. Next input_a and input_b are given and div_input_STB is made 1. But the data is accepted by the divider only when (div_input_STB==1) and (div_BUSY==0) i.e., (STB) && (!BUSY) determines when divider will accept the given valid data (look at (a) and (b)) which is indicated by (transaction) signal in waveform.
@@ -61,4 +62,5 @@ Only then inputs given are accepted by divider indicated by (transaction) line b
 
 6. At first 2 and 3 is given, so result is 0.666666686535. And at second 4 and 5 is given, so result is 0.800000011921.
 
-7. Note that all through out the operation, input (output_module_BUSY) signal is low indicating that output module that is connected to divider is ready to accept whenever valid output div is given. 
+7. Note that all through out the operation, input (output_module_BUSY) signal is low indicating that output module that is connected to divider is ready to accept whenever valid output div is given.
+```

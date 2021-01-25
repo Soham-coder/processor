@@ -1,8 +1,9 @@
 
-`include "../register_file/reg_file.sv" //It's the same as full code of reg_file coming and sitting in this place
-`include "../addition_operation_controller/addition_operation_controller.sv" //It's the same as full code of addition_operation_controller coming and sitting in this place
+`include "../defines.vh"
+`include "../register_file/reg_file.v" //It's the same as full code of reg_file coming and sitting in this place
+`include "../addition_operation_controller/addition_operation_controller.v" //It's the same as full code of addition_operation_controller coming and sitting in this place
 //Mux includes
-`include "../multiplication_operation_controller/multiplication_operation_controller.sv"//It's the same as full code of addition_operation_controller coming and sitting in this place
+`include "../multiplication_operation_controller/multiplication_operation_controller.v"//It's the same as full code of addition_operation_controller coming and sitting in this place
 //Mux includes
 
 
@@ -28,24 +29,56 @@ module instruction_decode_controller
   input start;//Start signal given by top level CPU to indicate start the operation
   
   
-  input [58:0] instruction; //Instruction given by top level CPU
+
+  localparam  NUMBER_OF_PC_REGISTERS = `NUMBER_OF_PC_REGISTERS;
+  localparam  PC_WIDTH = $clog2(NUMBER_OF_PC_REGISTERS);
+  localparam  OPERATION_TYPE_WIDTH = `OPERATION_TYPE_WIDTH;
+  localparam  OPCODE_WIDTH = `OPCODE_WIDTH;
+  localparam  NUMBER_OF_REGISTERS = `NUMBER_OF_REGISTERS;
+  localparam  ADDR_WIDTH = $clog2(NUMBER_OF_REGISTERS);
+  localparam  WORD_SIZE = `WORD_SIZE;
+  localparam  INSTR_WIDTH = OPERATION_TYPE_WIDTH + OPCODE_WIDTH + 3*ADDR_WIDTH + PC_WIDTH + WORD_SIZE; 
+  
+  //Instruction Field ranges 
+  localparam  IMMEDIATE_VAL_RANGE_LSB = 0;
+  localparam  IMMEDIATE_VAL_RANGE_MSB = IMMEDIATE_VAL_RANGE_LSB + WORD_SIZE - 1;
+  
+  localparam  PROGRAM_COUNTER_LSB = IMMEDIATE_VAL_RANGE_MSB + 1;
+  localparam  PROGRAM_COUNTER_MSB = PROGRAM_COUNTER_LSB + PC_WIDTH - 1;
+  
+  localparam  RS2_LSB = PROGRAM_COUNTER_MSB + 1;
+  localparam  RS2_MSB = RS2_LSB + ADDR_WIDTH - 1;
+  
+  localparam  RS1_LSB = RS2_MSB + 1;
+  localparam  RS1_MSB = RS1_LSB + ADDR_WIDTH - 1;
+  
+  localparam  RD_LSB =  RS1_MSB + 1;
+  localparam  RD_MSB =  RD_LSB + ADDR_WIDTH - 1;
+  
+  localparam  OPCODE_LSB = RD_MSB + 1;
+  localparam  OPCODE_MSB = OPCODE_LSB + OPCODE_WIDTH - 1;
+
+  localparam  FLAG_LSB = OPCODE_MSB + 1;
+  localparam  FLAG_MSB = FLAG_LSB + OPERATION_TYPE_WIDTH - 1; 
+
+  input [INSTR_WIDTH - 1:0] instruction; //Instruction given by top level CPU
   
   output busy; //Output busy signal indicating that controller is busy doing current operation
   output done; //Output done signal indicating that controller has finished doing current operation
   output reg fetch_stage_enable; //Output signal to write to poll register which CPU polls to determine when to go for next instruction
-  output reg [4:0] next_pc_to_cpu; //Output next pc value to CPU
+  output reg [PC_WIDTH - 1:0] next_pc_to_cpu; //Output next pc value to CPU
   
   //Intermediate registers/variables
-  reg [4:0] rs1, rs2, rs3, rd;
-  reg [4:0] source_1_address_reg, source_2_address_reg, source_3_address_reg, source_1_address, source_2_address, source_3_address;
-  reg [31:0] destination_value;
-  reg [31:0] source_1_value, source_2_value, source_3_value, source_immediate_value_reg, source_immediate_value;
+  reg [ADDR_WIDTH - 1:0] rs1, rs2, rs3, rd;
+  reg [ADDR_WIDTH - 1:0] source_1_address_reg, source_2_address_reg, source_3_address_reg, source_1_address, source_2_address, source_3_address;
+  reg [WORD_SIZE - 1:0] destination_value;
+  reg [WORD_SIZE - 1:0] source_1_value, source_2_value, source_3_value, source_immediate_value_reg, source_immediate_value;
   reg write_enable;
   
-  reg [4:0] pc_reg, pc;
+  reg [PC_WIDTH - 1:0] pc_reg, pc;
   
-  reg [4:0] next_pc_add;
-  reg [4:0] next_pc_mult;
+  reg [PC_WIDTH - 1:0] next_pc_add;
+  reg [PC_WIDTH - 1:0] next_pc_mult;
   
   reg start_add_controller;
   
@@ -59,8 +92,8 @@ module instruction_decode_controller
   reg done_from_mult_controller;
   reg busy_from_mult_controller;
 
-  reg [1:0] operation_type_reg, operation_type;
-  reg [4:0] destination_address_reg, destination_address;
+  reg [OPERATION_TYPE_WIDTH - 1:0] operation_type_reg, operation_type;
+  reg [ADDR_WIDTH - 1:0] destination_address_reg, destination_address;
   
   reg busy_temp, done_temp;
   
@@ -75,9 +108,11 @@ module instruction_decode_controller
    RegisterFile reg_inst
   (
    .ReadData1(source_1_value), 
-   .ReadData2(source_2_value), 
+   .ReadData2(source_2_value),
+   .ReadData3(source_3_value), 
    .ReadReg1(rs1), 
    .ReadReg2(rs2),
+   .ReadReg3(rs3),
    .WriteReg(rd), 
    .WriteData(destination_value), 
    .RegWrite(write_enable), 
@@ -85,8 +120,8 @@ module instruction_decode_controller
   );
   
   //Mux ports for add controller
-  reg [4:0] rs1_add_cont, rs2_add_cont, rd_add_cont;
-  reg [31:0] source1_add_cont, source2_add_cont, source3_add_cont, destval_add_cont;
+  reg [ADDR_WIDTH - 1:0] rs1_add_cont, rs2_add_cont, rd_add_cont;
+  reg [WORD_SIZE - 1:0] source1_add_cont, source2_add_cont, source3_add_cont, destval_add_cont;
   reg writeen_add_cont;
   
   //Sub-controller instance
@@ -117,8 +152,8 @@ module instruction_decode_controller
 
   
   //Mux ports for mult controller
-  reg [4:0] rs1_mult_cont, rs2_mult_cont, rd_mult_cont;
-  reg [31:0] source1_mult_cont, source2_mult_cont, source3_mult_cont, destval_mult_cont;
+  reg [ADDR_WIDTH - 1:0] rs1_mult_cont, rs2_mult_cont, rd_mult_cont;
+  reg [WORD_SIZE - 1:0] source1_mult_cont, source2_mult_cont, source3_mult_cont, destval_mult_cont;
   reg writeen_mult_cont;
 
   //Sub-controller instance
@@ -148,7 +183,7 @@ module instruction_decode_controller
   );
   
   //Intermediate registers for RS1 MUX
-  reg [4:0] rs1_muladd_cont;
+  reg [ADDR_WIDTH - 1:0] rs1_muladd_cont;
   reg [1:0] rs1_sel;
   
   //RS1 MUX instance
@@ -162,7 +197,7 @@ module instruction_decode_controller
   );
   
   //Intermediate registers for RS2 MUX
-  reg [4:0] rs2_muladd_cont;
+  reg [ADDR_WIDTH - 1:0] rs2_muladd_cont;
   reg [1:0] rs2_sel;
 
   //RS2 MUX instance
@@ -176,7 +211,7 @@ module instruction_decode_controller
   );
   
   //Intermediate registers for RS3 MUX
-  reg [4:0] rs3_muladd_cont;
+  reg [ADDR_WIDTH - 1:0] rs3_muladd_cont;
   reg [1:0] rs3_sel;
 
   //RS3 MUX instance
@@ -189,7 +224,7 @@ module instruction_decode_controller
   
 
   //Intermediate registers for RD MUX
-  reg [4:0] rd_muladd_cont;
+  reg [ADDR_WIDTH - 1:0] rd_muladd_cont;
   reg [1:0] rd_sel;
 
   //RD MUX instance
@@ -203,7 +238,7 @@ module instruction_decode_controller
   );
   
   //Intermediate registers for destval MUX
-  reg [31:0] destval_muladd_cont;
+  reg [WORD_SIZE - 1:0] destval_muladd_cont;
   reg [1:0] dest_sel;
 
   //Destination value MUX instance
@@ -231,7 +266,7 @@ module instruction_decode_controller
   );
   
   //Intermediate registers for source1 val MUX
-  reg [31:0] source1_muladd_cont;
+  reg [WORD_SIZE - 1:0] source1_muladd_cont;
   reg [1:0] source1_sel;
 
   //Source1 Value MUX instance
@@ -245,7 +280,7 @@ module instruction_decode_controller
   );
   
   //Intermediate registers for source2 val MUX
-  reg [31:0] source2_muladd_cont;
+  reg [WORD_SIZE - 1:0] source2_muladd_cont;
   reg [1:0] source2_sel;
 
   //Source2 Value MUX instance
@@ -259,7 +294,7 @@ module instruction_decode_controller
   );
   
   //Intermediate registers for source3 val MUX
-  reg [31:0] source3_muladd_cont;
+  reg [WORD_SIZE - 1:0] source3_muladd_cont;
   reg [1:0] source3_sel;
 
   //Source3 Value MUX instance
@@ -301,8 +336,8 @@ module instruction_decode_controller
   parameter SOURCE2_ADD = 2'b00, SOURCE2_MUL = 2'b01, SOURCE2_MULADD = 2'b10;
   
   //Instruction opcode encoding -- instruction[56:52] indicates type of operation like ADD, MULT, DIV, COMP etc., So many more to come 
-  parameter ADD = 5'b00000;
-  parameter MULT= 5'b00001;
+  parameter ADD = `OPCODE_WIDTH'b00000;
+  parameter MULT= `OPCODE_WIDTH'b00001;
   
   always@(posedge clk)begin//always
     case(top_cnt_state)
@@ -311,24 +346,24 @@ module instruction_decode_controller
           busy_temp <= 1; //Make the busy signal high, because operation has started for the controller
           done_temp <= 0; //Make the done signal low, because it is currently busy 
           fetch_stage_enable <= 0; //Write 0 to the poll register of CPU
-          case(instruction[56:52])//Opcode indicates operation type
+          case(instruction[OPCODE_MSB : OPCODE_LSB])//Opcode indicates operation type
             ADD:begin
-              operation_type_reg <= instruction[58:57]; //Flag indicates flag of operation e.g., I,J or R-type
-              destination_address_reg <= instruction[51:47]; //Destination address indicates the destination register to which resultant value will get written to
-              source_1_address_reg <= instruction[46:42]; //Source 1 address indicates the source register address of the first operand
-              source_2_address_reg <= instruction[41:37]; //Source 2 address indicates the source register address of the second operand
-              pc_reg <= instruction[36:32]; //Indicates the current PC value
-              source_immediate_value_reg <= instruction[31:0]; //Immediate 32 bit value or operand in case of immediate operation
+              operation_type_reg <= instruction[FLAG_MSB : FLAG_LSB]; //Flag indicates flag of operation e.g., I,J or R-type
+              destination_address_reg <= instruction[RD_MSB: RD_LSB]; //Destination address indicates the destination register to which resultant value will get written to
+              source_1_address_reg <= instruction[RS1_MSB : RS1_LSB]; //Source 1 address indicates the source register address of the first operand
+              source_2_address_reg <= instruction[RS2_MSB : RS2_LSB]; //Source 2 address indicates the source register address of the second operand
+              pc_reg <= instruction[PROGRAM_COUNTER_MSB : PROGRAM_COUNTER_LSB]; //Indicates the current PC value
+              source_immediate_value_reg <= instruction[IMMEDIATE_VAL_RANGE_MSB : IMMEDIATE_VAL_RANGE_LSB]; //Immediate 32 bit value or operand in case of immediate operation
               ///Start the add controller
               top_cnt_state <= start_add_controller_and_sel_mux; //Next state of starting the add operation controller
             end
             MULT:begin
-              operation_type_reg <= instruction[58:57]; //Flag indicates flag of operation e.g., I,J or R-type
-              destination_address_reg <= instruction[51:47]; //Destination address indicates the destination register to which resultant value will get written to
-              source_1_address_reg <= instruction[46:42]; //Source 1 address indicates the source register address of the first operand
-              source_2_address_reg <= instruction[41:37]; //Source 2 address indicates the source register address of the second operand
-              pc_reg <= instruction[36:32]; //Indicates the current PC value
-              source_immediate_value_reg <= instruction[31:0]; //Immediate 32 bit value or operand in case of immediate operation
+              operation_type_reg <= instruction[FLAG_MSB : FLAG_LSB]; //Flag indicates flag of operation e.g., I,J or R-type
+              destination_address_reg <= instruction[RD_MSB : RD_LSB]; //Destination address indicates the destination register to which resultant value will get written to
+              source_1_address_reg <= instruction[RS1_MSB : RS1_LSB]; //Source 1 address indicates the source register address of the first operand
+              source_2_address_reg <= instruction[RS2_MSB : RS2_LSB]; //Source 2 address indicates the source register address of the second operand
+              pc_reg <= instruction[PROGRAM_COUNTER_MSB : PROGRAM_COUNTER_LSB; //Indicates the current PC value
+              source_immediate_value_reg <= instruction[IMMEDIATE_VAL_RANGE_MSB : IMMEDIATE_VAL_RANGE_LSB]; //Immediate 32 bit value or operand in case of immediate operation
               ///Start the mult controller
               top_cnt_state <= start_mult_controller_and_sel_mux; //Next state of starting the mult operation controller
             end 

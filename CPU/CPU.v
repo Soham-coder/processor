@@ -1,8 +1,19 @@
-`include "../instruction_decode_controller/instruction_decode_controller.sv"
-`include "../program_counter/program_counter.sv"
+`include "../defines.vh"
+`include "../instruction_decode_controller/instruction_decode_controller.v"
+`include "../program_counter/program_counter.v"
 
 module CPU 
 (clk, rst);
+
+localparam  NUMBER_OF_PC_REGISTERS = `NUMBER_OF_PC_REGISTERS;
+localparam  PC_WIDTH = $clog2(NUMBER_OF_PC_REGISTERS);
+localparam  OPERATION_TYPE_WIDTH = `OPERATION_TYPE_WIDTH;
+localparam  OPCODE_WIDTH = `OPCODE_WIDTH;
+localparam  NUMBER_OF_REGISTERS = `NUMBER_OF_REGISTERS;
+localparam  ADDR_WIDTH = $clog2(NUMBER_OF_REGISTERS);
+localparam  WORD_SIZE = `WORD_SIZE;
+localparam  INSTR_WIDTH = OPERATION_TYPE_WIDTH + OPCODE_WIDTH + 3*ADDR_WIDTH + PC_WIDTH + WORD_SIZE; 
+
 
 input clk; //Input clk
 input rst; //Input rst
@@ -13,9 +24,9 @@ reg fetch_stage_enable; //Poll register which is updated or written by instructi
 
 
 //Intermediate registers
-reg [4:0] next_pc_to_cpu;
-reg [4:0] program_counter;
-reg [58:0] instr_in_to_controller, instr_out_from_pc;
+reg [PC_WIDTH - 1:0] next_pc_to_cpu;
+reg [PC_WIDTH - 1:0] program_counter;
+reg [INSTR_WIDTH - 1:0] instr_in_to_controller, instr_out_from_pc;
 reg start_top_controller;
 
 reg busy,done;
