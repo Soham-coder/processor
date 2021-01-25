@@ -6,14 +6,6 @@
 </p>
 
 
-##### __Data Flow ASM__
-
-<p align="center">
-  <img src="./Data_Flow_ASM.jpg?raw=true" alt="Data_Flow_ASM"/>
-</p>
-
-
-
 ##### __Data Flow FSM__
 
 <p align="center">
