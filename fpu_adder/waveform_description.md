@@ -1,6 +1,6 @@
 
 
-### Spec
+##### Adder(State Machine IP)
 ```diff prompt
 //________IEEE Floating Point Adder (Single Precision)________//
 
@@ -53,14 +53,14 @@
 ```
 
 
-__Simple Handshake Diagram__
+##### __Simple Handshake Diagram__
 
 <p align="center">
   <img src="./Simple_handsake.PNG?raw=true" alt="Waveform"/>
 </p>
 
 
-___Block Diagram___
+##### ___Block Diagram___
 
 <p align="center">
   <img src="./Block_Diagram.jpg?raw=true" alt="Block_Diagram"/>
@@ -82,7 +82,7 @@ to be false before raising the input STB line (adder_input_STB).
 ```
 
 
-__Data Flow FSM__
+##### __Data Flow FSM__
 
 <p align="center">
   <img src="./FSM.jpg?raw=true" alt="Data_Flow_FSM"/>
@@ -90,7 +90,7 @@ __Data Flow FSM__
 
 
 
-__Waveform__
+##### __Waveform__
 
 <p align="center">
   <img src="./wave.PNG?raw=true" alt="Waveform"/>
