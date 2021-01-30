@@ -152,3 +152,4 @@ So nothing happens and PC gets stuck to 2.
 - [Verification Gentleman](https://blog.verificationgentleman.com/)
 	- [Github example code](https://github.com/verification-gentleman-blog)
 - [Floating point units by Jonathan P Dawson](https://github.com/dawsonjon/fpu)
+- [Computer architecture design techniques by Charles Eric LaForest](http://fpgacpu.ca/)
